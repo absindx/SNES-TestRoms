@@ -347,42 +347,49 @@ SNESMessage_NOP:
 		RTS
 
 SNESMessage_Boot_SPL:
-!TestID		:= !TestID_SA1_Boot_SPL
+		JSR	GetStackPointeTestID
+		STA	!TestingID
+		TAX
 
 		BIT	!TestResult
 		BMI	+
-		LDA.b	#!TestID
+		LDA	!TestingID
 		STA	!TestTestID
 +
 		LDA	!Sa1MessageByte
 		STA	!TestSa1StackPointerL
-		STA	!TestResults+!TestID
-		RTS
+		STA	!TestActuals, X
+		JMP	TestSnesExecute
 
 SNESMessage_Boot_SPH:
 !TestID		:= !TestID_SA1_Boot_SPH
+		JSR	GetStackPointeTestID
+		INC	A
+		STA	!TestingID
+		TAX
 
 		BIT	!TestResult
 		BMI	+
-		LDA.b	#!TestID
+		LDA	!TestingID
 		STA	!TestTestID
 +
 		LDA	!Sa1MessageByte
 		STA	!TestSa1StackPointerH
-		STA	!TestResults+!TestID
-		RTS
+		STA	!TestActuals, X
+		JMP	TestSnesExecute
 
 SNESMessage_TestReady:
 		LDA	!Sa1MessageByte
-		JSR	TestInitialize
-		RTS
+		JMP	TestInitialize
 
 SNESMessage_TestSa1Expected:
 		LDA	!Sa1MessageByte
 		BIT	!TestResult
 		BMI	+
 		STA	!TestGeneralSa1Expected
-+		RTS
++		LDX	!TestingID
+		STA	!TestExpects, X
+		RTS
 
 SNESMessage_TestSa1Actual:
 		LDA	!Sa1MessageByte
@@ -390,7 +397,7 @@ SNESMessage_TestSa1Actual:
 		BMI	+
 		STA	!TestGeneralSa1Actual
 +		LDX	!TestingID
-		STA	!TestResults, X
+		STA	!TestActuals, X
 		RTS
 
 SNESMessage_TestSa1IRamExpected:
@@ -398,7 +405,9 @@ SNESMessage_TestSa1IRamExpected:
 		BIT	!TestResult
 		BMI	+
 		STA	!TestIRamSa1Expected
-+		RTS
++		LDX	!TestingID
+		STA	!TestExpects, X
+		RTS
 
 SNESMessage_TestSa1IRamActual:
 		LDA	!Sa1MessageByte
@@ -406,7 +415,7 @@ SNESMessage_TestSa1IRamActual:
 		BMI	+
 		STA	!TestIRamSa1Actual
 +		LDX	!TestingID
-		STA	!TestResults, X
+		STA	!TestActuals, X
 		RTS
 
 SNESMessage_TestSa1BwRamExpectedE:
@@ -414,14 +423,18 @@ SNESMessage_TestSa1BwRamExpectedE:
 		BIT	!TestResult
 		BMI	+
 		STA	!TestBwRamSa1Expected+0
-+		RTS
++		LDX	!TestingID
+		STA	!TestExpects, X
+		RTS
 
 SNESMessage_TestSa1BwRamExpectedA:
 		LDA	!Sa1MessageByte
 		BIT	!TestResult
 		BMI	+
 		STA	!TestBwRamSa1Expected+1
-+		RTS
++		LDX	!TestingID
+		STA	!TestExpects, X
+		RTS
 
 SNESMessage_TestSa1BwRamActualE:
 		LDA	!Sa1MessageByte
@@ -429,8 +442,8 @@ SNESMessage_TestSa1BwRamActualE:
 		BMI	+
 		STA	!TestBwRamSa1Actual+0
 +		LDX	!TestingID
-		ORA	!TestResults, X
-		STA	!TestResults, X
+		ORA	!TestActuals, X
+		STA	!TestActuals, X
 		RTS
 
 SNESMessage_TestSa1BwRamActualA:
@@ -439,16 +452,15 @@ SNESMessage_TestSa1BwRamActualA:
 		BMI	+
 		STA	!TestBwRamSa1Actual+1
 +		LDX	!TestingID
-		ORA	!TestResults, X
-		STA	!TestResults, X
+		ORA	!TestActuals, X
+		STA	!TestActuals, X
 		RTS
 
 SNESMessage_TestSnesExecute:
 		JMP	TestSnesExecute
 
 SNESMessage_TestCheck:
-		JSR	TestResultCheck
-		RTS
+		JMP	TestResultCheck
 
 SNESMessage_TestFinished:
 		LDA	!TestResult
@@ -461,6 +473,18 @@ SNESMessage_TestFinished:
 		LDA.b	#%00000000			;\  disable SA-1 to SNES IRQ
 		STA	!SA1_SIE			;/
 
+		INC	!TestFinished
+
+		RTS
+
+GetStackPointeTestID:
+		; .shortm, .shortx
+		LDA	!TestingID
+		CMP.b	#!TestID_SA1_Boot_SPH+1
+		BCS	+
+		LDA.b	#!TestID_SA1_Boot_SPL
+		RTS
++		LDA.b	#$FF
 		RTS
 
 
@@ -496,8 +520,18 @@ macro	SendSA1Message(messageType, messageValue)
 		LDA.b	#<messageValue>
 		%SendSA1MessageAcc(<messageType>)
 endmacro
+macro	JumpSA1TestRoutine(id)
+		if <id> < 10
+				JMP	TestPattern_SA1_0<id>
+			TestReturn_SA1_0<id>:
+		else
+				JMP	TestPattern_SA1_<id>
+			TestReturn_SA1_<id>:
+		endif
+endmacro
 
 SA1TestMain:
+		; X = Initial stack pointer
 		REP	#$30				;\
 		TXA					; | send SA-1 initial stack pointer
 		SEP	#$30				; |
@@ -517,10 +551,8 @@ else
 		; none
 endif
 
-		JMP	TestPattern_SA1_05
-TestReturn_SA1_05:
-		JMP	TestPattern_SA1_06
-TestReturn_SA1_06:
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_Boot)
+		%JumpSA1TestRoutine(!TestID_SA1_BwRamProtection_Boot)
 
 SA1TestFinished:
 
@@ -797,7 +829,8 @@ TestInitialize:
 		RTS
 
 TestResultCheck:
-		; .shortx
+		; .shortm, .shortx
+		LDX	!TestingID
 
 		LDA	!TestGeneralSnesExpected
 		CMP	!TestGeneralSnesActual
@@ -829,34 +862,51 @@ TestResultCheck:
 		CMP	!TestBwRamSa1Actual+1
 		BNE	.Failed
 
+		INC	!TestResults, X
 		RTS
 
 .Failed		LDA	!TestResult
-		BNE	.Return
+		BNE	.SkipWrite
 		DEC	!TestResult
-.Return		RTS
+.SkipWrite	DEC	!TestResults, X
+		RTS
 
 WriteTestGeneralSnesExpected:
+		LDX	!TestingID
+		STA	!TestExpects, X
 		BIT	!TestResult
 		BMI	.Return
 		STA	!TestGeneralSnesExpected
 .Return		RTS
 WriteTestGeneralSnesActual:
+		LDX	!TestingID
+		STA	!TestActuals, X
 		BIT	!TestResult
 		BMI	.Return
 		STA	!TestGeneralSnesActual
 .Return		RTS
 WriteTestIRamSnesExpected:
+		LDX	!TestingID
+		STA	!TestExpects, X
 		BIT	!TestResult
 		BMI	.Return
 		STA	!TestIRamSnesExpected
 .Return		RTS
 WriteTestIRamSnesActual:
+		LDX	!TestingID
+		STA	!TestActuals, X
 		BIT	!TestResult
 		BMI	.Return
 		STA	!TestIRamSnesActual
 .Return		RTS
 WriteTestBwRamSnesExpected:
+		PHA
+		BVC	+
+		ORA.b	#$80
++		LDX	!TestingID
+		STA	!TestExpects, X
+		PLA
+
 		BIT	!TestResult
 		BMI	.Return
 		STA	!TestBwRamSnesExpected+1
@@ -866,6 +916,13 @@ WriteTestBwRamSnesExpected:
 +		STA	!TestBwRamSnesExpected+0
 .Return		RTS
 WriteTestBwRamSnesActual:
+		PHA
+		BVC	+
+		ORA.b	#$80
++		LDX	!TestingID
+		STA	!TestActuals, X
+		PLA
+
 		BIT	!TestResult
 		BMI	.Return
 		STA	!TestBwRamSnesActual+1
@@ -879,28 +936,64 @@ WriteTestBwRamSnesActual:
 
 ;--------------------------------------------------
 
+!TestSnesHandlerMax	#= 0
+macro	TestSnesHandlerDef(id)
+		org	.TestRoutineTable+((<id>-1)*2)
+		if <id> < 10
+			dw	TestPattern_SNES_0<id>
+		else
+			dw	TestPattern_SNES_<id>
+		endif
+		if !TestSnesHandlerMax < <id>
+			!TestSnesHandlerMax	#= <id>
+		endif
+endmacro
+macro	TestSnesHandlerNop(id)
+		org	.TestRoutineTable+((<id>-1)*2)
+		dw	TestPattern_SNES_NOP
+		if !TestSnesHandlerMax < <id>
+			!TestSnesHandlerMax	#= <id>
+		endif
+endmacro
+
 TestSnesExecute:
 		REP	#$30
 		; .longm, .longx
-		LDA	!Sa1MessageByte
+		LDA	!TestingID
+		AND.w	#$00FF
+		DEC	A
 		ASL
 		TAX
 		JMP	(.TestRoutineTable, X)
-		RTS
 
 .TestRoutineTable
-		dw	TestPattern_SNES_NOP		; 0
-		dw	TestPattern_SNES_NOP		; 1
-		dw	TestPattern_SNES_NOP		; 2
-		dw	TestPattern_SNES_NOP		; 3
-		dw	TestPattern_SNES_NOP		; 4
-		dw	TestPattern_SNES_NOP		; 5
-		dw	TestPattern_SNES_NOP		; 6
+		pushpc
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_Boot)
+		%TestSnesHandlerDef(!TestID_SNES_BwRamProtection_Boot)
+		%TestSnesHandlerDef(!TestID_SA1_Boot_SPL)
+		%TestSnesHandlerDef(!TestID_SA1_Boot_SPH)
+		%TestSnesHandlerNop(!TestID_SA1_IRamProtection_Boot)
+		%TestSnesHandlerNop(!TestID_SA1_BwRamProtection_Boot)
+		;%TestSnesHandler(!TestID_SNES_IRamProtection_SNES)
+		%TestSnesHandlerNop(!TestID_SNES_IRamProtection_SA1)
+		;%TestSnesHandler(!TestID_SA1_IRamProtection_SNES)
+		;%TestSnesHandler(!TestID_SA1_IRamProtection_SA1)
+		pullpc
+
+		skip	!TestSnesHandlerMax*2
 
 TestPattern_SNES_NOP:
 		RTS
 
 !TestID		:= 0
+
+TestPattern_Pass:
+		SEP	#$30
+		; .shortm, .shortx
+		LDX	!TestingID
+		INC	!TestResults, X
+		RTS
+
 
 TestPattern_SNES_01:	; Boot I-RAM protection (SNES)
 !TestID		:= !TestID_SNES_IRamProtection_Boot
@@ -914,7 +1007,7 @@ TestPattern_SNES_01:	; Boot I-RAM protection (SNES)
 		JSR	WriteTestIRamSnesExpected
 
 		JSR	TestIRam
-		STA	!TestResults+!TestID
+		STA	!TestActuals+!TestID
 		JSR	WriteTestIRamSnesActual
 
 		JMP	TestResultCheck
@@ -935,14 +1028,18 @@ TestPattern_SNES_02:	; Boot BW-RAM protection (SNES)
 		PHA
 		BCS	+
 		ORA.b	#$80
-+		STA	!TestResults+!TestID
++		STA	!TestActuals+!TestID
 		PLA
 		JSR	WriteTestBwRamSnesActual
 
 		JMP	TestResultCheck
 
 ;TestPattern_SA1_03:	; Boot stack pointer
+TestPattern_SNES_03:	; Boot stack pointer
+		JMP	TestPattern_Pass
 ;TestPattern_SA1_04:	; Boot stack pointer
+TestPattern_SNES_04:	; Boot stack pointer
+		JMP	TestPattern_Pass
 
 TestPattern_SA1_05:	; Boot I-RAM protection (SA-1)
 !TestID		:= !TestID_SA1_IRamProtection_Boot

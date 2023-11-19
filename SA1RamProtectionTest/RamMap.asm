@@ -71,23 +71,24 @@ warnings pull
 ;--------------------------------------------------
 
 	org	$0000
-%DefineRamNext(TestResult,		1)	; $0000 0=Running, 1=Passed, 255=Failed
-%DefineRamNext(TestTestID,		1)	; $0001 First failed test ID
-%DefineRamNext(TestSramSize,		3)	; $0002
-%DefineRamNext(TestGeneralSnesExpected,	1)	; $0005
-%DefineRamNext(TestGeneralSnesActual,	1)	; $0006
-%DefineRamNext(TestGeneralSa1Expected,	1)	; $0007
-%DefineRamNext(TestGeneralSa1Actual,	1)	; $0008
-%DefineRamNext(TestIRamSnesExpected,	1)	; $0009
-%DefineRamNext(TestIRamSnesActual,	1)	; $000A
-%DefineRamNext(TestIRamSa1Expected,	1)	; $000B
-%DefineRamNext(TestIRamSa1Actual,	1)	; $000C
-%DefineRamNext(TestBwRamSnesExpected,	2)	; $000D +0=Enable, +1=Area
-%DefineRamNext(TestBwRamSnesActual,	2)	; $000F
-%DefineRamNext(TestBwRamSa1Expected,	2)	; $0011
-%DefineRamNext(TestBwRamSa1Actual,	2)	; $0013
-%DefineRamNext(TestSnesStackPointer,	2)	; $0015
-%DefineRamNext(TestSa1StackPointer,	2)	; $0017
+%DefineRamNext(TestFinished,		1)	; $0000 0=Running, 1=Passed, 255=Failed
+%DefineRamNext(TestResult,		1)	; $0001 0=Running, 1=Passed, 255=Failed
+%DefineRamNext(TestTestID,		1)	; $0002 First failed test ID
+%DefineRamNext(TestSramSize,		3)	; $0003
+%DefineRamNext(TestGeneralSnesExpected,	1)	; $0006
+%DefineRamNext(TestGeneralSnesActual,	1)	; $0007
+%DefineRamNext(TestGeneralSa1Expected,	1)	; $0008
+%DefineRamNext(TestGeneralSa1Actual,	1)	; $0009
+%DefineRamNext(TestIRamSnesExpected,	1)	; $000A
+%DefineRamNext(TestIRamSnesActual,	1)	; $000B
+%DefineRamNext(TestIRamSa1Expected,	1)	; $000C
+%DefineRamNext(TestIRamSa1Actual,	1)	; $000D
+%DefineRamNext(TestBwRamSnesExpected,	2)	; $000E +0=Enable, +1=Area
+%DefineRamNext(TestBwRamSnesActual,	2)	; $0010
+%DefineRamNext(TestBwRamSa1Expected,	2)	; $0012
+%DefineRamNext(TestBwRamSa1Actual,	2)	; $0014
+%DefineRamNext(TestSnesStackPointer,	2)	; $0016
+%DefineRamNext(TestSa1StackPointer,	2)	; $0018
 
 	org	$0020
 %DefineRamNext(ScratchMemory,		16)	; $0020
@@ -97,8 +98,10 @@ warnings pull
 
 	org	$0200
 %DefineRamNext(TestResults,		256)
+%DefineRamNext(TestActuals,		256)
+%DefineRamNext(TestExpects,		256)
 
-	org	$0300
+;	org	$0500
 %DefineRamNext(Initialized,		1)
 %DefineRamNext(DuringNMI,		1)
 

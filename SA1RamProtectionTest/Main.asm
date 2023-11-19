@@ -526,19 +526,6 @@ FrameMain:
 		JSR	ScreenOff
 
 		JSR	UpdateScreen
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA	!TestResult			;\
-		BEQ	.TestRunning			; | check testing status
-		LDA	!TestSramSizeL			; |
-		ORA	!TestSramSizeH			; |
-		ORA	!TestSramSizeB			; |
-		BNE	.SramMeasured			;/
-		JSR	TestBwRamSize
-.SramMeasured
-
-.TestRunning
 
 .Exit
 		SEP	#$30
@@ -550,6 +537,18 @@ FrameMain:
 
 ;		LDA.b	#%10000001
 ;		STA	!CPU_NMITIMEN
+
+		;SEP	#$30
+		; .shortm, .shortx
+		LDA	!TestFinished			;\
+		BEQ	.TestRunning			; | check testing status
+		LDA	!TestSramSizeL			; |
+		ORA	!TestSramSizeH			; |
+		ORA	!TestSramSizeB			; |
+		BNE	.SramMeasured			;/
+		JSR	TestBwRamSize
+.SramMeasured
+.TestRunning
 
 		RTS
 
