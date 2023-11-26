@@ -42,7 +42,7 @@ UpdateScreen:
 		%ScreenVramAddress($0C, $07)
 		LDY.b	#datasize(UpdateScreen_Message_Result)/3
 		LDX.b	#(datasize(UpdateScreen_Message_Result)/3)*0
-		LDA	!TestResult
+		LDA	!DisplayResult
 		BEQ	.DrawStatus
 		BMI	+
 		LDX.b	#(datasize(UpdateScreen_Message_Result)/3)*1
@@ -65,62 +65,62 @@ UpdateScreen:
 
 		; Stack pointer
 		%ScreenVramAddress($0D, $09)
-		LDX	!TestSnesStackPointerH
+		LDX	!TestSnesStackPointerBootH
 		JSR	DrawHexX
-		LDX	!TestSnesStackPointerL
+		LDX	!TestSnesStackPointerBootL
 		JSR	DrawHexX
 
 		%ScreenVramAddress($0D, $0A)
-		LDX	!TestSa1StackPointerH
+		LDX	!TestSa1StackPointerBootH
 		JSR	DrawHexX
-		LDX	!TestSa1StackPointerL
+		LDX	!TestSa1StackPointerBootL
 		JSR	DrawHexX
 
 		; Test ID
 		%ScreenVramAddress($0C, $0E)
-		LDA	!TestTestID
+		LDA	!DisplayTestID
 		JSR	DrawByteDecimalRight
 
 		; I-RAM protection
 		%ScreenVramAddress($12, $11)
-		LDA	!TestIRamSnesExpected
+		LDA	!DisplayIRamSnesExpected
 		JSR	DrawIRamProtection
 
 		%ScreenVramAddress($12, $12)
-		LDA	!TestIRamSnesActual
+		LDA	!DisplayIRamSnesActual
 		JSR	DrawIRamProtection
 
 		%ScreenVramAddress($12, $13)
-		LDA	!TestIRamSa1Expected
+		LDA	!DisplayIRamSa1Expected
 		JSR	DrawIRamProtection
 
 		%ScreenVramAddress($12, $14)
-		LDA	!TestIRamSa1Actual
+		LDA	!DisplayIRamSa1Actual
 		JSR	DrawIRamProtection
 
 		; BW-RAM protection
 		%ScreenVramAddress($12, $17)
-		LDA	!TestBwRamSnesExpected+1
+		LDA	!DisplayBwRamSnesExpected+1
 		XBA
-		LDA	!TestBwRamSnesExpected+0
+		LDA	!DisplayBwRamSnesExpected+0
 		JSR	DrawBwRamProtection
 
 		%ScreenVramAddress($12, $18)
-		LDA	!TestBwRamSnesActual+1
+		LDA	!DisplayBwRamSnesActual+1
 		XBA
-		LDA	!TestBwRamSnesActual+0
+		LDA	!DisplayBwRamSnesActual+0
 		JSR	DrawBwRamProtection
 
 		%ScreenVramAddress($12, $19)
-		LDA	!TestBwRamSa1Expected+1
+		LDA	!DisplayBwRamSa1Expected+1
 		XBA
-		LDA	!TestBwRamSa1Expected+0
+		LDA	!DisplayBwRamSa1Expected+0
 		JSR	DrawBwRamProtection
 
 		%ScreenVramAddress($12, $1A)
-		LDA	!TestBwRamSa1Actual+1
+		LDA	!DisplayBwRamSa1Actual+1
 		XBA
-		LDA	!TestBwRamSa1Actual+0
+		LDA	!DisplayBwRamSa1Actual+0
 		JSR	DrawBwRamProtection
 
 		RTS
@@ -287,7 +287,7 @@ InitializeSA1:
 		;STX	!SA1_SIWP			;/
 
 		LDX.b	#%00000000			;\
-		LDX	!TestResult			; | SA-1 CPU clear reset
+		LDX	!DisplayResult			; | SA-1 CPU clear reset
 		BEQ	+				; |   message = SNES initialize test result
 		LDX	#!SNESStatus_BootFailed		; |
 +		STX	!SA1_CCNT			;/
@@ -351,13 +351,13 @@ SNESMessage_Boot_SPL:
 		STA	!TestingID
 		TAX
 
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
-		LDA	!TestingID
-		STA	!TestTestID
+		;LDA	!TestingID
+		STA	!DisplayTestID
 +
 		LDA	!Sa1MessageByte
-		STA	!TestSa1StackPointerL
+		STA	!TestSa1StackPointerBootL
 		STA	!TestActuals, X
 		JMP	TestSnesExecute
 
@@ -368,13 +368,13 @@ SNESMessage_Boot_SPH:
 		STA	!TestingID
 		TAX
 
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
-		LDA	!TestingID
-		STA	!TestTestID
+		;LDA	!TestingID
+		STA	!DisplayTestID
 +
 		LDA	!Sa1MessageByte
-		STA	!TestSa1StackPointerH
+		STA	!TestSa1StackPointerBootH
 		STA	!TestActuals, X
 		JMP	TestSnesExecute
 
@@ -384,74 +384,82 @@ SNESMessage_TestReady:
 
 SNESMessage_TestSa1Expected:
 		LDA	!Sa1MessageByte
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestGeneralSa1Expected
-+		LDX	!TestingID
++		STA	!DisplayGeneralSa1Expected
+		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
 
 SNESMessage_TestSa1Actual:
 		LDA	!Sa1MessageByte
-		BIT	TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestGeneralSa1Actual
-+		LDX	!TestingID
++		STA	!DisplayGeneralSa1Actual
+		LDX	!TestingID
 		STA	!TestActuals, X
 		RTS
 
 SNESMessage_TestSa1IRamExpected:
 		LDA	!Sa1MessageByte
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestIRamSa1Expected
-+		LDX	!TestingID
++		STA	!DisplayIRamSa1Expected
+		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
 
 SNESMessage_TestSa1IRamActual:
 		LDA	!Sa1MessageByte
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestIRamSa1Actual
-+		LDX	!TestingID
++		STA	!DisplayIRamSa1Actual
+		LDX	!TestingID
 		STA	!TestActuals, X
 		RTS
 
 SNESMessage_TestSa1BwRamExpectedE:
 		LDA	!Sa1MessageByte
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestBwRamSa1Expected+0
-+		LDX	!TestingID
++		STA	!DisplayBwRamSa1Expected+0
+		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
 
 SNESMessage_TestSa1BwRamExpectedA:
 		LDA	!Sa1MessageByte
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestBwRamSa1Expected+1
-+		LDX	!TestingID
++		STA	!DisplayBwRamSa1Expected+1
+		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
 
 SNESMessage_TestSa1BwRamActualE:
 		LDA	!Sa1MessageByte
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestBwRamSa1Actual+0
-+		LDX	!TestingID
++		STA	!DisplayBwRamSa1Actual+0
+		LDX	!TestingID
 		ORA	!TestActuals, X
 		STA	!TestActuals, X
 		RTS
 
 SNESMessage_TestSa1BwRamActualA:
 		LDA	!Sa1MessageByte
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	+
 		STA	!TestBwRamSa1Actual+1
-+		LDX	!TestingID
++		STA	!DisplayBwRamSa1Actual+1
+		LDX	!TestingID
 		ORA	!TestActuals, X
 		STA	!TestActuals, X
 		RTS
@@ -463,9 +471,9 @@ SNESMessage_TestCheck:
 		JMP	TestResultCheck
 
 SNESMessage_TestFinished:
-		LDA	!TestResult
+		LDA	!DisplayResult
 		BNE	+
-		INC	!TestResult
+		INC	!DisplayResult
 +
 		LDA.b	#!SNESStatus_TestFinished
 		JSR	SetSnesStatus
@@ -473,18 +481,21 @@ SNESMessage_TestFinished:
 		LDA.b	#%00000000			;\  disable SA-1 to SNES IRQ
 		STA	!SA1_SIE			;/
 
-		INC	!TestFinished
+		JSR	TestBwRamSize
+
+		LDA	!DisplayResult
+		STA	!TestFinished
 
 		RTS
 
 GetStackPointeTestID:
 		; .shortm, .shortx
 		LDA	!TestingID
-		CMP.b	#!TestID_SA1_Boot_SPH+1
+		CMP.b	#!TestID_SA1_Boot_SPH+1		;   !TestID_SA1_Boot_SPL
 		BCS	+
 		LDA.b	#!TestID_SA1_Boot_SPL
 		RTS
-+		LDA.b	#$FF
++		LDA.b	#$FF				;   Invalid
 		RTS
 
 
@@ -553,6 +564,7 @@ endif
 
 		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_Boot)
 		%JumpSA1TestRoutine(!TestID_SA1_BwRamProtection_Boot)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_SNES)
 
 SA1TestFinished:
 
@@ -647,6 +659,7 @@ TestIRam:
 		; .shortm, .shortx
 
 .LoopPage
+		CLV
 .LoopByte	%TestMemoryX($00, b)
 		BNE	+
 		SEP	#$40				; set V flag
@@ -812,20 +825,31 @@ TestBwRamSize:
 		RTS
 
 TestInitialize:
-!TestInitialize_ClearStart	:= !TestGeneralSnesExpected
-!TestInitialize_ClearEnd	:= !TestSnesStackPointer-1
-
 		; .shortm, .shortx
 		STA	!TestingID
-		BIT	!TestResult
-		BMI	.SkipTestDisplay
-		STA	!TestTestID
 
-		LDX.b	#(!TestInitialize_ClearEnd-!TestInitialize_ClearStart)
--		STZ	!TestInitialize_ClearStart, X
+		BIT	!DisplayResult
+		BMI	.SkipDisplayBuffer
+
+		STA	!DisplayTestID
+
+		; clear display buffer
+!ClearStart	:= !DisplayGeneralSnesExpected
+!ClearEnd	:= !DisplayBwRamSa1Actual
+		LDX.b	#(!ClearEnd-!ClearStart)
+-		STZ	!ClearStart, X
 		DEX
 		BPL	-
-.SkipTestDisplay
+.SkipDisplayBuffer
+
+		; clear test buffer
+!ClearStart	:= !TestGeneralSnesExpected
+!ClearEnd	:= !TestBwRamSa1Actual
+		LDX.b	#(!ClearEnd-!ClearStart)
+-		STZ	!ClearStart, X
+		DEX
+		BPL	-
+
 		RTS
 
 TestResultCheck:
@@ -865,71 +889,81 @@ TestResultCheck:
 		INC	!TestResults, X
 		RTS
 
-.Failed		LDA	!TestResult
+.Failed		LDA	!DisplayResult
 		BNE	.SkipWrite
-		DEC	!TestResult
+		DEC	!DisplayResult
 .SkipWrite	DEC	!TestResults, X
 		RTS
 
 WriteTestGeneralSnesExpected:
 		LDX	!TestingID
 		STA	!TestExpects, X
-		BIT	!TestResult
-		BMI	.Return
 		STA	!TestGeneralSnesExpected
+		BIT	!DisplayResult
+		BMI	.Return
+		STA	!DisplayGeneralSnesExpected
 .Return		RTS
 WriteTestGeneralSnesActual:
 		LDX	!TestingID
 		STA	!TestActuals, X
-		BIT	!TestResult
-		BMI	.Return
 		STA	!TestGeneralSnesActual
+		BIT	!DisplayResult
+		BMI	.Return
+		STA	!DisplayGeneralSnesActual
 .Return		RTS
 WriteTestIRamSnesExpected:
 		LDX	!TestingID
 		STA	!TestExpects, X
-		BIT	!TestResult
-		BMI	.Return
 		STA	!TestIRamSnesExpected
+		BIT	!DisplayResult
+		BMI	.Return
+		STA	!DisplayIRamSnesExpected
 .Return		RTS
 WriteTestIRamSnesActual:
 		LDX	!TestingID
 		STA	!TestActuals, X
-		BIT	!TestResult
-		BMI	.Return
 		STA	!TestIRamSnesActual
+		BIT	!DisplayResult
+		BMI	.Return
+		STA	!DisplayIRamSnesActual
 .Return		RTS
 WriteTestBwRamSnesExpected:
+		STA	!TestBwRamSnesExpected+1
 		PHA
 		BVC	+
 		ORA.b	#$80
 +		LDX	!TestingID
 		STA	!TestExpects, X
+		AND.b	#$80
+		STA	!TestBwRamSnesExpected+0
 		PLA
 
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	.Return
-		STA	!TestBwRamSnesExpected+1
+		STA	!DisplayBwRamSnesExpected+1
 		LDA.b	#$00
 		BVC	+
 		ORA.b	#$80
-+		STA	!TestBwRamSnesExpected+0
++		STA	!DisplayBwRamSnesExpected+0
 .Return		RTS
 WriteTestBwRamSnesActual:
+		STA	!TestBwRamSnesActual+1
 		PHA
 		BVC	+
 		ORA.b	#$80
 +		LDX	!TestingID
 		STA	!TestActuals, X
+		AND.b	#$80
+		STA	!TestBwRamSnesActual+0
 		PLA
 
-		BIT	!TestResult
+		BIT	!DisplayResult
 		BMI	.Return
-		STA	!TestBwRamSnesActual+1
+		STA	!DisplayBwRamSnesActual+1
 		LDA.b	#$00
 		BVC	+
 		ORA.b	#$80
-+		STA	!TestBwRamSnesActual+0
++		STA	!DisplayBwRamSnesActual+0
 .Return		RTS
 
 
@@ -974,10 +1008,10 @@ TestSnesExecute:
 		%TestSnesHandlerDef(!TestID_SA1_Boot_SPH)
 		%TestSnesHandlerNop(!TestID_SA1_IRamProtection_Boot)
 		%TestSnesHandlerNop(!TestID_SA1_BwRamProtection_Boot)
-		;%TestSnesHandler(!TestID_SNES_IRamProtection_SNES)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_SNES)
 		%TestSnesHandlerNop(!TestID_SNES_IRamProtection_SA1)
-		;%TestSnesHandler(!TestID_SA1_IRamProtection_SNES)
-		;%TestSnesHandler(!TestID_SA1_IRamProtection_SA1)
+		;%TestSnesHandlerDef(!TestID_SA1_IRamProtection_SNES)
+		;%TestSnesHandlerDef(!TestID_SA1_IRamProtection_SA1)
 		pullpc
 
 		skip	!TestSnesHandlerMax*2
@@ -995,8 +1029,8 @@ TestPattern_Pass:
 		RTS
 
 
-TestPattern_SNES_01:	; Boot I-RAM protection (SNES)
 !TestID		:= !TestID_SNES_IRamProtection_Boot
+TestPattern_SNES_01:	; Boot I-RAM protection (SNES)
 		SEP	#$30
 		; .shortm, .shortx
 
@@ -1007,13 +1041,12 @@ TestPattern_SNES_01:	; Boot I-RAM protection (SNES)
 		JSR	WriteTestIRamSnesExpected
 
 		JSR	TestIRam
-		STA	!TestActuals+!TestID
 		JSR	WriteTestIRamSnesActual
 
 		JMP	TestResultCheck
 
-TestPattern_SNES_02:	; Boot BW-RAM protection (SNES)
 !TestID		:= !TestID_SNES_BwRamProtection_Boot
+TestPattern_SNES_02:	; Boot BW-RAM protection (SNES)
 		SEP	#$30
 		; .shortm, .shortx
 
@@ -1025,11 +1058,6 @@ TestPattern_SNES_02:	; Boot BW-RAM protection (SNES)
 		JSR	WriteTestBwRamSnesExpected
 
 		JSR	TestBwRam
-		PHA
-		BCS	+
-		ORA.b	#$80
-+		STA	!TestActuals+!TestID
-		PLA
 		JSR	WriteTestBwRamSnesActual
 
 		JMP	TestResultCheck
@@ -1041,8 +1069,8 @@ TestPattern_SNES_03:	; Boot stack pointer
 TestPattern_SNES_04:	; Boot stack pointer
 		JMP	TestPattern_Pass
 
-TestPattern_SA1_05:	; Boot I-RAM protection (SA-1)
 !TestID		:= !TestID_SA1_IRamProtection_Boot
+TestPattern_SA1_05:	; Boot I-RAM protection (SA-1)
 		SEP	#$30
 		; .shortm, .shortx
 
@@ -1056,8 +1084,8 @@ TestPattern_SA1_05:	; Boot I-RAM protection (SA-1)
 
 		JMP	TestReturn_SA1_05
 
-TestPattern_SA1_06:	; Boot BW-RAM protection (SA-1)
 !TestID		:= !TestID_SA1_BwRamProtection_Boot
+TestPattern_SA1_06:	; Boot BW-RAM protection (SA-1)
 		SEP	#$30
 		; .shortm, .shortx
 
@@ -1076,5 +1104,36 @@ TestPattern_SA1_06:	; Boot BW-RAM protection (SA-1)
 		%SendSA1Message(!Message_TestCheck, $00)
 
 		JMP	TestReturn_SA1_06
+
+!TestID		:= !TestID_SNES_IRamProtection_SNES
+TestPattern_SA1_07:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#%11111111
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, $00)
+
+		JMP	TestReturn_SA1_07
+
+TestPattern_SNES_07:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA	!Sa1MessageByte
+		STA	!SA1_SIWP
+
+		JSR	WriteTestIRamSnesExpected
+
+		JSR	TestIRam
+		JSR	WriteTestIRamSnesActual
+
+		JMP	TestResultCheck
+
+
+
+
 
 

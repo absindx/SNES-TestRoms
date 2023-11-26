@@ -219,7 +219,7 @@ EmulationRESET:
 
 		; .longm, .shortx
 		LDA	!SnesInitialStackPointer
-		STA	!TestSnesStackPointer
+		STA	!TestSnesStackPointerBoot
 
 		SEP	#$30
 		; .shortm, .shortx
@@ -533,22 +533,6 @@ FrameMain:
 
 		STZ	!DuringNMI
 		JSR	ScreenOn
-;		SEI					;   receive from SA-1 IRQ
-
-;		LDA.b	#%10000001
-;		STA	!CPU_NMITIMEN
-
-		;SEP	#$30
-		; .shortm, .shortx
-		LDA	!TestFinished			;\
-		BEQ	.TestRunning			; | check testing status
-		LDA	!TestSramSizeL			; |
-		ORA	!TestSramSizeH			; |
-		ORA	!TestSramSizeB			; |
-		BNE	.SramMeasured			;/
-		JSR	TestBwRamSize
-.SramMeasured
-.TestRunning
 
 		RTS
 
@@ -836,3 +820,5 @@ SA1IRQ:
 incsrc	"TestRoutines.asm"
 
 ;--------------------------------------------------
+
+print	"Last address: $", pc
