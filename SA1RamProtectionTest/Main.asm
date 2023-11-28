@@ -430,6 +430,7 @@ NativeNMI:
 		SEP	#$20
 		LDA	!CPU_RDNMI
 
+		INC	!AliveCounter
 		JSR	FrameMain
 
 		REP	#$30

@@ -122,6 +122,9 @@ warnings pull
 %DefineRamNext(Sa1MessageType,			1)	; $0060
 %DefineRamNext(Sa1MessageByte,			1)	; $0061
 
+	org	$0070
+%DefineRamNext(AliveCounter,			1)
+
 	org	$0200
 %DefineRamNext(TestResults,			256)
 %DefineRamNext(TestActuals,			256)

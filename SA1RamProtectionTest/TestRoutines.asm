@@ -222,8 +222,8 @@ DrawBwRamProtection:
 ;--------------------------------------------------
 
 TestInitial:
-		JSR	TestPattern_SNES_01
-		JMP	TestPattern_SNES_02
+		JSR	TestPattern_SNES_001
+		JMP	TestPattern_SNES_002
 
 
 
@@ -386,8 +386,8 @@ SNESMessage_TestSa1Expected:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestGeneralSa1Expected
-+		STA	!DisplayGeneralSa1Expected
+		STA	!DisplayGeneralSa1Expected
++		STA	!TestGeneralSa1Expected
 		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
@@ -396,8 +396,8 @@ SNESMessage_TestSa1Actual:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestGeneralSa1Actual
-+		STA	!DisplayGeneralSa1Actual
+		STA	!DisplayGeneralSa1Actual
++		STA	!TestGeneralSa1Actual
 		LDX	!TestingID
 		STA	!TestActuals, X
 		RTS
@@ -406,8 +406,8 @@ SNESMessage_TestSa1IRamExpected:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestIRamSa1Expected
-+		STA	!DisplayIRamSa1Expected
+		STA	!DisplayIRamSa1Expected
++		STA	!TestIRamSa1Expected
 		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
@@ -416,8 +416,8 @@ SNESMessage_TestSa1IRamActual:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestIRamSa1Actual
-+		STA	!DisplayIRamSa1Actual
+		STA	!DisplayIRamSa1Actual
++		STA	!TestIRamSa1Actual
 		LDX	!TestingID
 		STA	!TestActuals, X
 		RTS
@@ -426,8 +426,8 @@ SNESMessage_TestSa1BwRamExpectedE:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestBwRamSa1Expected+0
-+		STA	!DisplayBwRamSa1Expected+0
+		STA	!DisplayBwRamSa1Expected+0
++		STA	!TestBwRamSa1Expected+0
 		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
@@ -436,8 +436,8 @@ SNESMessage_TestSa1BwRamExpectedA:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestBwRamSa1Expected+1
-+		STA	!DisplayBwRamSa1Expected+1
+		STA	!DisplayBwRamSa1Expected+1
++		STA	!TestBwRamSa1Expected+1
 		LDX	!TestingID
 		STA	!TestExpects, X
 		RTS
@@ -446,8 +446,8 @@ SNESMessage_TestSa1BwRamActualE:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestBwRamSa1Actual+0
-+		STA	!DisplayBwRamSa1Actual+0
+		STA	!DisplayBwRamSa1Actual+0
++		STA	!TestBwRamSa1Actual+0
 		LDX	!TestingID
 		ORA	!TestActuals, X
 		STA	!TestActuals, X
@@ -457,8 +457,8 @@ SNESMessage_TestSa1BwRamActualA:
 		LDA	!Sa1MessageByte
 		BIT	!DisplayResult
 		BMI	+
-		STA	!TestBwRamSa1Actual+1
-+		STA	!DisplayBwRamSa1Actual+1
+		STA	!DisplayBwRamSa1Actual+1
++		STA	!TestBwRamSa1Actual+1
 		LDX	!TestingID
 		ORA	!TestActuals, X
 		STA	!TestActuals, X
@@ -532,12 +532,15 @@ macro	SendSA1Message(messageType, messageValue)
 		%SendSA1MessageAcc(<messageType>)
 endmacro
 macro	JumpSA1TestRoutine(id)
-		if <id> < 10
+		if <id> >= 100
+				JMP	TestPattern_SA1_<id>
+			TestReturn_SA1_<id>:
+		elseif <id> >= 10
 				JMP	TestPattern_SA1_0<id>
 			TestReturn_SA1_0<id>:
 		else
-				JMP	TestPattern_SA1_<id>
-			TestReturn_SA1_<id>:
+				JMP	TestPattern_SA1_00<id>
+			TestReturn_SA1_00<id>:
 		endif
 endmacro
 
@@ -565,6 +568,27 @@ endif
 		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_Boot)
 		%JumpSA1TestRoutine(!TestID_SA1_BwRamProtection_Boot)
 		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_SNES)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_SA1)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_SNES)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_SA1)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D0)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D1)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D2)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D3)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D4)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D5)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D6)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_D7)
+		%JumpSA1TestRoutine(!TestID_SNES_IRamProtection_DMulti)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D0)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D1)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D2)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D3)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D4)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D5)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D6)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_D7)
+		%JumpSA1TestRoutine(!TestID_SA1_IRamProtection_DMulti)
 
 SA1TestFinished:
 
@@ -967,16 +991,41 @@ WriteTestBwRamSnesActual:
 .Return		RTS
 
 
+SetSnesIRam:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA	!Sa1MessageByte
+		STA	!SA1_SIWP
+		RTS
+
+TestSnesIRam:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA	!Sa1MessageByte
+		STA	!SA1_SIWP
+
+		JSR	WriteTestIRamSnesExpected
+
+		JSR	TestIRam
+		JSR	WriteTestIRamSnesActual
+
+		JMP	TestResultCheck
+
+
 
 ;--------------------------------------------------
 
 !TestSnesHandlerMax	#= 0
 macro	TestSnesHandlerDef(id)
 		org	.TestRoutineTable+((<id>-1)*2)
-		if <id> < 10
+		if <id> >= 100
+			dw	TestPattern_SNES_<id>
+		elseif <id> >= 10
 			dw	TestPattern_SNES_0<id>
 		else
-			dw	TestPattern_SNES_<id>
+			dw	TestPattern_SNES_00<id>
 		endif
 		if !TestSnesHandlerMax < <id>
 			!TestSnesHandlerMax	#= <id>
@@ -988,6 +1037,19 @@ macro	TestSnesHandlerNop(id)
 		if !TestSnesHandlerMax < <id>
 			!TestSnesHandlerMax	#= <id>
 		endif
+endmacro
+
+macro	TestReturn_SA1Main(id)
+		if <id> >= 100
+			JMP	TestReturn_SA1_<id>
+		elseif <id> >= 10
+			JMP	TestReturn_SA1_0<id>
+		else
+			JMP	TestReturn_SA1_00<id>
+		endif
+endmacro
+macro	TestReturn_SA1()
+		%TestReturn_SA1Main(!TestID)
 endmacro
 
 TestSnesExecute:
@@ -1009,9 +1071,27 @@ TestSnesExecute:
 		%TestSnesHandlerNop(!TestID_SA1_IRamProtection_Boot)
 		%TestSnesHandlerNop(!TestID_SA1_BwRamProtection_Boot)
 		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_SNES)
-		%TestSnesHandlerNop(!TestID_SNES_IRamProtection_SA1)
-		;%TestSnesHandlerDef(!TestID_SA1_IRamProtection_SNES)
-		;%TestSnesHandlerDef(!TestID_SA1_IRamProtection_SA1)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_SA1)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_SNES)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_SA1)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D0)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D1)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D2)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D3)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D4)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D5)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D6)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_D7)
+		%TestSnesHandlerDef(!TestID_SNES_IRamProtection_DMulti)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D0)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D1)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D2)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D3)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D4)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D5)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D6)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_D7)
+		%TestSnesHandlerDef(!TestID_SA1_IRamProtection_DMulti)
 		pullpc
 
 		skip	!TestSnesHandlerMax*2
@@ -1030,69 +1110,60 @@ TestPattern_Pass:
 
 
 !TestID		:= !TestID_SNES_IRamProtection_Boot
-TestPattern_SNES_01:	; Boot I-RAM protection (SNES)
+TestPattern_SNES_001:	; Boot I-RAM protection (SNES)
 		SEP	#$30
 		; .shortm, .shortx
 
 		LDA.b	#!TestID
 		JSR	TestInitialize
-
 		LDA.b	#%00000000
 		JSR	WriteTestIRamSnesExpected
-
 		JSR	TestIRam
 		JSR	WriteTestIRamSnesActual
 
 		JMP	TestResultCheck
 
 !TestID		:= !TestID_SNES_BwRamProtection_Boot
-TestPattern_SNES_02:	; Boot BW-RAM protection (SNES)
+TestPattern_SNES_002:	; Boot BW-RAM protection (SNES)
 		SEP	#$30
 		; .shortm, .shortx
 
 		LDA.b	#!TestID
 		JSR	TestInitialize
-
 		CLV
 		LDA.b	#$0F
 		JSR	WriteTestBwRamSnesExpected
-
 		JSR	TestBwRam
 		JSR	WriteTestBwRamSnesActual
 
 		JMP	TestResultCheck
 
-;TestPattern_SA1_03:	; Boot stack pointer
-TestPattern_SNES_03:	; Boot stack pointer
+TestPattern_SNES_003:	; Boot stack pointer
 		JMP	TestPattern_Pass
-;TestPattern_SA1_04:	; Boot stack pointer
-TestPattern_SNES_04:	; Boot stack pointer
+TestPattern_SNES_004:	; Boot stack pointer
 		JMP	TestPattern_Pass
 
 !TestID		:= !TestID_SA1_IRamProtection_Boot
-TestPattern_SA1_05:	; Boot I-RAM protection (SA-1)
+TestPattern_SA1_005:	; Boot I-RAM protection (SA-1)
 		SEP	#$30
 		; .shortm, .shortx
 
 		%SendSA1Message(!Message_TestReady, !TestID)
 		%SendSA1Message(!Message_TestSa1IRamExpected, $00)
-
 		%SoftwareJSR(TestIRam)
 		%SendSA1MessageAcc(!Message_TestSa1IRamActual)
-
 		%SendSA1Message(!Message_TestCheck, $00)
 
-		JMP	TestReturn_SA1_05
+		%TestReturn_SA1()
 
 !TestID		:= !TestID_SA1_BwRamProtection_Boot
-TestPattern_SA1_06:	; Boot BW-RAM protection (SA-1)
+TestPattern_SA1_006:	; Boot BW-RAM protection (SA-1)
 		SEP	#$30
 		; .shortm, .shortx
 
 		%SendSA1Message(!Message_TestReady, !TestID)
 		%SendSA1Message(!Message_TestSa1BwRamExpectedE, $00)
 		%SendSA1Message(!Message_TestSa1BwRamExpectedA, $0F)
-
 		%SoftwareJSR(TestBwRam)
 		%SendSA1MessageAcc(!Message_TestSa1BwRamActualA)
 
@@ -1103,10 +1174,10 @@ TestPattern_SA1_06:	; Boot BW-RAM protection (SA-1)
 
 		%SendSA1Message(!Message_TestCheck, $00)
 
-		JMP	TestReturn_SA1_06
+		%TestReturn_SA1()
 
 !TestID		:= !TestID_SNES_IRamProtection_SNES
-TestPattern_SA1_07:
+TestPattern_SA1_007:
 		SEP	#$30
 		; .shortm, .shortx
 
@@ -1114,26 +1185,125 @@ TestPattern_SA1_07:
 		STA	!SA1_CIWP
 
 		%SendSA1Message(!Message_TestReady, !TestID)
-		%SendSA1Message(!Message_TestSnesExecute, $00)
+		%SendSA1Message(!Message_TestSnesExecute, %00000000)
 
-		JMP	TestReturn_SA1_07
+		%TestReturn_SA1()
 
-TestPattern_SNES_07:
+TestPattern_SNES_007:
+		JMP	TestSnesIRam
+
+!TestID		:= !TestID_SNES_IRamProtection_SA1
+TestPattern_SA1_008:
 		SEP	#$30
 		; .shortm, .shortx
 
-		LDA	!Sa1MessageByte
-		STA	!SA1_SIWP
+		LDA.b	#%11111111
+		STA	!SA1_CIWP
 
-		JSR	WriteTestIRamSnesExpected
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSa1IRamExpected, %11111111)
+		%SendSA1Message(!Message_TestSnesExecute, %00000000)
+		%SoftwareJSR(TestIRam)
+		%SendSA1MessageAcc(!Message_TestSa1IRamActual)
+		%SendSA1Message(!Message_TestCheck, $00)
 
-		JSR	TestIRam
-		JSR	WriteTestIRamSnesActual
+		%TestReturn_SA1()
 
-		JMP	TestResultCheck
+TestPattern_SNES_008:
+		JMP	SetSnesIRam
 
+!TestID		:= !TestID_SA1_IRamProtection_SNES
+TestPattern_SA1_009:
+		SEP	#$30
+		; .shortm, .shortx
 
+		LDA.b	#%00000000
+		STA	!SA1_CIWP
 
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, %11111111)
 
+		%TestReturn_SA1()
+
+TestPattern_SNES_009:
+		JMP	TestSnesIRam
+
+!TestID		:= !TestID_SA1_IRamProtection_SA1
+TestPattern_SA1_010:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#%00000000
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, %11111111)
+		%SendSA1Message(!Message_TestSa1IRamExpected, %00000000)
+		%SoftwareJSR(TestIRam)
+		%SendSA1MessageAcc(!Message_TestSa1IRamActual)
+		%SendSA1Message(!Message_TestCheck, $00)
+
+		%TestReturn_SA1()
+
+TestPattern_SNES_010:
+		JMP	SetSnesIRam
+
+macro	TestSnesIRamProtectionDx(id, expected)
+TestPattern_SA1_0<id>:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#%11111111
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestReady, <id>)
+		%SendSA1Message(!Message_TestSnesExecute, <expected>)
+
+		%TestReturn_SA1Main(<id>)
+
+TestPattern_SNES_0<id>:
+		JMP	TestSnesIRam
+endmacro
+
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D0, %00000001)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D1, %00000010)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D2, %00000100)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D3, %00001000)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D4, %00010000)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D5, %00100000)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D6, %01000000)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_D7, %10000000)
+%TestSnesIRamProtectionDx(!TestID_SNES_IRamProtection_DMulti, %00110101)
+
+macro	TestSa1IRamProtectionDx(id, expected)
+TestPattern_SA1_0<id>:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#<expected>
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestReady, <id>)
+		%SendSA1Message(!Message_TestSnesExecute, %11111111)
+		%SendSA1Message(!Message_TestSa1IRamExpected, <expected>)
+		%SoftwareJSR(TestIRam)
+		%SendSA1MessageAcc(!Message_TestSa1IRamActual)
+		%SendSA1Message(!Message_TestCheck, $00)
+
+		%TestReturn_SA1Main(<id>)
+
+TestPattern_SNES_0<id>:
+		JMP	SetSnesIRam
+endmacro
+
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D0, %00000001)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D1, %00000010)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D2, %00000100)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D3, %00001000)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D4, %00010000)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D5, %00100000)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D6, %01000000)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_D7, %10000000)
+%TestSa1IRamProtectionDx(!TestID_SA1_IRamProtection_DMulti, %11001010)
 
 
