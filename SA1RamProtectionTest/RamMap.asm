@@ -119,20 +119,18 @@ warnings pull
 
 	org	$0050
 %DefineRamNext(ScratchMemory,			16)	; $0050
+	;org	$0060
 %DefineRamNext(Sa1MessageType,			1)	; $0060
 %DefineRamNext(Sa1MessageByte,			1)	; $0061
-
 	org	$0070
-%DefineRamNext(AliveCounter,			1)
+%DefineRamNext(Initialized,			1)	; $0070
+%DefineRamNext(DuringNMI,			1)	; $0071
+%DefineRamNext(FrameCounter,			1)	; $0072
 
 	org	$0200
 %DefineRamNext(TestResults,			256)
 %DefineRamNext(TestActuals,			256)
 %DefineRamNext(TestExpects,			256)
-
-;	org	$0500
-%DefineRamNext(Initialized,			1)
-%DefineRamNext(DuringNMI,			1)
 
 %DefineRam(SnesInitialStackPointer,		$4379, 2)	; !DMA_A2A7H
 

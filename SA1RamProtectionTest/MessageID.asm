@@ -45,8 +45,8 @@ includeonce
 
 ; I-RAM Protection				; TARGET  MEMORY   SNES/SA-1   ADDRESS	DESCRIPTION
 !TestID_SNES_IRamProtection_SNES	= 7	;  SNES   I-RAM     $00/$FF   	      	SNES only protection (SNES)
-!TestID_SNES_IRamProtection_SA1		= 8	;  SA-1   I-RAM     $00/$FF   	      	SNES only protection (SA-1)
-!TestID_SA1_IRamProtection_SNES		= 9	;  SNES   I-RAM     $FF/$00   	      	SA-1 only protection (SNES)
+!TestID_SA1_IRamProtection_SNES		= 8	;  SA-1   I-RAM     $00/$FF   	      	SNES only protection (SA-1)
+!TestID_SNES_IRamProtection_SA1		= 9	;  SNES   I-RAM     $FF/$00   	      	SA-1 only protection (SNES)
 !TestID_SA1_IRamProtection_SA1		= 10	;  SA-1   I-RAM     $FF/$00   	      	SA-1 only protection (SA-1)
 !TestID_SNES_IRamProtection_D0		= 11	;  SNES   I-RAM     $01/$FF    $003000	SIWP = %00000001
 !TestID_SNES_IRamProtection_D1		= 12	;  SNES   I-RAM     $02/$FF    $003000	SIWP = %00000010
@@ -69,8 +69,8 @@ includeonce
 
 ; BW-RAM Protection				; TARGET  MEMORY   SNES/SA-1   ADDRESS	DESCRIPTION
 !TestID_SNES_BwRamProtection_SNES	= 29	;  SNES   BW-RAM  $00FF/$80--  $400000	SNES only protection (SNES)
-!TestID_SNES_BwRamProtection_SNES	= 30	;  SA-1   BW-RAM  $00FF/$80--  $400000	SNES only protection (SA-1)
-!TestID_SA1_BwRamProtection_SNES	= 31	;  SNES   BW-RAM  $8000/$00--  $400000	SA-1 only protection (SNES)
+!TestID_SA1_BwRamProtection_SNES	= 30	;  SA-1   BW-RAM  $00FF/$80--  $400000	SNES only protection (SA-1)
+!TestID_SNES_BwRamProtection_SA1	= 31	;  SNES   BW-RAM  $8000/$00--  $400000	SA-1 only protection (SNES)
 !TestID_SA1_BwRamProtection_SA1		= 32	;  SA-1   BW-RAM  $8000/$00--  $400000	SA-1 only protection (SA-1)
 !TestID_SNES_BwRamProtection_W00	= 33	;  SNES   BW-RAM  $0000/$80--  $400000	SWEN =   0, BWPA = $00 ($400000-$4000FF)
 !TestID_SNES_BwRamProtection_W01	= 34	;  SNES   BW-RAM  $0001/$80--  $400000	SWEN =   0, BWPA = $01 ($400000-$4001FF)
@@ -99,9 +99,9 @@ includeonce
 !TestID_SNES_BwRamProtection_W80	= 57	;  SNES   BW-RAM  $0080/$80--  $400000	SWEN =   0, BWPA = $00 ($400000-$4000FF) * undocumented
 !TestID_SNES_BwRamProtection_W81	= 58	;  SNES   BW-RAM  $0081/$80--  $400000	SWEN =   0, BWPA = $00 ($400000-$4000FF) * undocumented
 !TestID_SA1_BwRamProtection_SWCW00	= 59	;  SA-1   BW-RAM  $8000/$00--  $400000	SWEN = 1/0, BWPA = $00 ($400000-$4000FF) ; NOTE: BWPA is SNES CPU only
-!TestID_SA1_BwRamProtection_SWCW01	= 60	;  SA-1   BW-RAM  $8000/$00--  $400000	SWEN = 1/0, BWPA = $01 ($400000-$4001FF)
+!TestID_SA1_BwRamProtection_SWCW01	= 60	;  SA-1   BW-RAM  $8001/$00--  $400000	SWEN = 1/0, BWPA = $01 ($400000-$4001FF)
 !TestID_SA1_BwRamProtection_SPCW00	= 61	;  SA-1   BW-RAM  $0000/$00--  $400000	SWEN = 0/0, BWPA = $00 ($400000-$4000FF)
-!TestID_SA1_BwRamProtection_SPCW01	= 62	;  SA-1   BW-RAM  $0000/$00--  $400000	SWEN = 0/0, BWPA = $01 ($400000-$4001FF)
+!TestID_SA1_BwRamProtection_SPCW01	= 62	;  SA-1   BW-RAM  $0001/$00--  $400000	SWEN = 0/0, BWPA = $01 ($400000-$4001FF)
 
 ; I-RAM Mirroring				; TARGET  MEMORY   SNES/SA-1   ADDRESS	DESCRIPTION
 !TestID_SA1_IRamMirror_000000		= 63	;  SA-1   I-RAM     $FF/$FF    $000000	ADDR -> (SNES) $00-3F:3000-3?FF,$80-BF:3000-3?FF / (SA-1)                  $00-3F:3000-????,$80-BF:0000-????,$80-BF:3000-????
@@ -161,6 +161,10 @@ includeonce
 !TestID_SA1_Reboot_SPH			= 103	;  SA-1                               	(set SP at before reboot)         Reboot stack pointer
 !TestID_SA1_IRamProtection_Reboot	= 104	;  SA-1   I-RAM     $55/$33    $003000	(set protection at before reboot) Reboot protection (SA-1)
 !TestID_SA1_BwRamProtection_Reboot	= 105	;  SA-1   BW-RAM  $0002/$80--  $400000	(set protection at before reboot) Reboot protection (SA-1)
+
+;--------------------------------------------------
+
+!TestID_Count				= 105
 
 ;--------------------------------------------------
 
