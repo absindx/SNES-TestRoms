@@ -47,7 +47,12 @@ else
 endif
 
 	check bankcross off
-	padbyte	$00
+	if !DEBUG = 0
+		padbyte	$00
+	else
+		padbyte	$FF
+	endif
+
 	pad	!EofAddress
 	check bankcross on
 
@@ -226,8 +231,9 @@ EmulationRESET:
 
 		JSR	Initialize_Game
 
-		LDA.b	#%10000001			;\  Enable NMI, Joypad auto-read
-		STA	!CPU_NMITIMEN			;/
+		JSR	ScreenOn
+		;LDA.b	#%10000001			;\  Enable NMI, Joypad auto-read
+		;STA	!CPU_NMITIMEN			;/
 
 		REP	#$20
 		; .longm, .shortx
@@ -405,6 +411,29 @@ TransferOam:
 		STA	!DMA_DAS0L			;/
 		LDX.b	#$01				;\  Execute DMA #0
 		STX	!CPU_MDMAEN			;/
+
+		PLP
+		RTS
+
+;--------------------------------------------------
+
+UpdateJoypad:
+		PHP
+		SEP	#$30
+		; .shortm, shortx
+
+		LDA.b	#%00000001			;\
+-		BIT	!CPU_HVBJOY			; | wait automatic controller reading
+		BNE	-				;/
+
+		REP	#$20
+		; .longm, shortx
+		LDA	!CPU_STDCNTRL1L			;\
+		EOR.b	!JoypadInput			; | detect keydown
+		AND	!CPU_STDCNTRL1L			; |
+		STA.b	!JoypadPress			;/
+		LDA	!CPU_STDCNTRL1L
+		STA.b	!JoypadInput
 
 		PLP
 		RTS

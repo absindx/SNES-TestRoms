@@ -126,6 +126,8 @@ warnings pull
 %DefineRamNext(Initialized,			1)	; $0070
 %DefineRamNext(DuringNMI,			1)	; $0071
 %DefineRamNext(FrameCounter,			1)	; $0072
+%DefineRamNext(JoypadInput,			2)	; $0073 High   +1, Low    +0
+%DefineRamNext(JoypadPress,			2)	; $0075 BYsS udlr, AXLR 0123
 
 	org	$0200
 %DefineRamNext(TestResults,			256)
