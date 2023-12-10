@@ -116,7 +116,7 @@ includeonce
 !TestID_SNES_BwRamProtection_E07	= 74	;  SNES   BW-RAM  $8007/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $07 ($400000-$407FFF)
 !TestID_SNES_BwRamProtection_E08	= 75	;  SNES   BW-RAM  $8008/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $08 ($400000-$40FFFF)
 !TestID_SNES_BwRamProtection_E09	= 76	;  SNES   BW-RAM  $8009/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $09 ($400000-$41FFFF)
-!TestID_SNES_BwRamProtection_E0A	= 77	;  SNES   BW-RAM  $800A/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $0A ($400000-$43FFFF)
+!TestID_SNES_BwRamProtection_E0A	= 77	;  SNES   BW-RAM  $800A/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $0A ($400000-$43FFFF) * The test routine checks whether the address beyond the area is valid for writing, so it is reported as $0F.
 !TestID_SNES_BwRamProtection_E0B	= 78	;  SNES   BW-RAM  $800B/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $0B ($400000-$47FFFF) * Undocumented
 !TestID_SNES_BwRamProtection_E0C	= 79	;  SNES   BW-RAM  $800C/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $0C ($400000-$4FFFFF) * Undocumented
 !TestID_SNES_BwRamProtection_E0D	= 80	;  SNES   BW-RAM  $800D/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $0D ($400000-$5FFFFF) * Undocumented
@@ -142,7 +142,7 @@ includeonce
 !TestID_SA1_BwRamProtection_D07		= 100	;  SA-1   BW-RAM  $8007/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $07 ($400000-$407FFF) * BWPA is SNES CPU only, but it also affects SA-1.
 !TestID_SA1_BwRamProtection_D08		= 101	;  SA-1   BW-RAM  $8008/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $08 ($400000-$40FFFF) * BWPA is SNES CPU only, but it also affects SA-1.
 !TestID_SA1_BwRamProtection_D09		= 102	;  SA-1   BW-RAM  $8009/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $09 ($400000-$41FFFF) * BWPA is SNES CPU only, but it also affects SA-1.
-!TestID_SA1_BwRamProtection_D0A		= 103	;  SA-1   BW-RAM  $800A/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $0A ($400000-$43FFFF) * BWPA is SNES CPU only, but it also affects SA-1.
+!TestID_SA1_BwRamProtection_D0A		= 103	;  SA-1   BW-RAM  $800A/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $0A ($400000-$43FFFF) * BWPA is SNES CPU only, but it also affects SA-1. The test routine checks whether the address beyond the area is valid for writing, so it is reported as $0F.
 !TestID_SA1_BwRamProtection_D0B		= 104	;  SA-1   BW-RAM  $800B/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $0B ($400000-$47FFFF) * BWPA is SNES CPU only, but it also affects SA-1. Undocumented
 !TestID_SA1_BwRamProtection_D0C		= 105	;  SA-1   BW-RAM  $800C/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $0C ($400000-$4FFFFF) * BWPA is SNES CPU only, but it also affects SA-1. Undocumented
 !TestID_SA1_BwRamProtection_D0D		= 106	;  SA-1   BW-RAM  $800D/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $0D ($400000-$5FFFFF) * BWPA is SNES CPU only, but it also affects SA-1. Undocumented
