@@ -79,7 +79,7 @@ includeonce
 !TestID_SNES_BwRamProtection_SA1	= 37	;  SNES   BW-RAM  $8000/$00--  $400000	SA-1 only protection (SNES)
 !TestID_SA1_BwRamProtection_SA1		= 38	;  SA-1   BW-RAM  $8000/$00--  $400000	SA-1 only protection (SA-1) * Expect write valid. If one side is write-enabled, the other can also be written to.
 !TestID_SNES_BwRamProtection_Protect	= 39	;  SNES   BW-RAM  $00FF/$00--  $400000	Both protection (SNES)
-!TestID_SA1_BwRamProtection_Protect	= 40	;  SNES   BW-RAM  $00FF/$00--  $400000	Both protection (SA-1)
+!TestID_SA1_BwRamProtection_Protect	= 40	;  SA-1   BW-RAM  $00FF/$00--  $400000	Both protection (SA-1)
 !TestID_SNES_BwRamProtection_D00	= 41	;  SNES   BW-RAM  $0000/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $00 ($400000-$4000FF)
 !TestID_SNES_BwRamProtection_D01	= 42	;  SNES   BW-RAM  $0001/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $01 ($400000-$4001FF)
 !TestID_SNES_BwRamProtection_D02	= 43	;  SNES   BW-RAM  $0002/$00--  $400000	SWEN = 0, CWEN = 0, BWPA = $02 ($400000-$4003FF)

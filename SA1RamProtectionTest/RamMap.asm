@@ -85,7 +85,7 @@ warnings pull
 %DefineRamNext(TestGeneralSa1Actual,		1)	; $0015
 %DefineRamNext(TestIRamSnesExpected,		1)	; $0016
 %DefineRamNext(TestIRamSnesActual,		1)	; $0017
-%DefineRamNext(TestIRamSa1Expected,		1)	; $0018 
+%DefineRamNext(TestIRamSa1Expected,		1)	; $0018
 %DefineRamNext(TestIRamSa1Actual,		1)	; $0019
 %DefineRamNext(TestBwRamSnesExpected,		2)	; $001A +0=Enable, +1=Area
 %DefineRamNext(TestBwRamSnesActual,		2)	; $001C
@@ -142,7 +142,7 @@ warnings pull
 ;--------------------------------------------------
 
 ; +-------------+-----------------------+
-; | ADDRESS     | 			|
+; | ADDRESS     | USAGE			|
 ; +-------------+-----------------------+
 ; | $0000-$0FFF | Layer 1 Tilemap	|
 ; | $1000-$1FFF | Layer 2 Tilemap	|
