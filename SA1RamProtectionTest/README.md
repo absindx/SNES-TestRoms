@@ -19,7 +19,7 @@ Uses IRQ from SA-1 to SNES CPU for sending test data.
 * TEST ID : 52-56, 104-108  
   Even if a value larger than `$0A` is written to `BWPA`, the effective range of BW-RAM Protection is up to `$43FFFF`.  
 * TEST ID : 93-144  
-  BW-RAM Protection's BWPA is for SNES CPUs, but also affects SA-1.  
+  BW-RAM Protection's `BWPA` is a register for the SNES CPU, but it also affects the SA-1 protection area.  
 
 ## For automated testing  
 

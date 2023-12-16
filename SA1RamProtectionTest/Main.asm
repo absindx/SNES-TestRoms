@@ -1,5 +1,5 @@
 ;--------------------------------------------------
-; SA-1 Memory test
+; SA-1 RAM protection test
 ;--------------------------------------------------
 
 ;--------------------------------------------------
@@ -10,6 +10,9 @@
 !RamSize	= 128*1024
 !RomType	= 0					; 0=LoROM / 1=HiROM
 !DEBUG		= 1					; Release build with comment out
+
+!VersionMajor	= 0
+!VersionMinor	= 0
 
 ;--------------------------------------------------
 ; ROM setting
@@ -47,7 +50,7 @@ else
 endif
 
 	check bankcross off
-	if !DEBUG = 0
+	if defined("DEBUG")
 		padbyte	$00
 	else
 		padbyte	$FF
@@ -88,7 +91,8 @@ AdditionalCartridgeInformation:
 	org $00FFC0
 	padbyte $20
 CartridgeInformation:
-	db	"SA-1 MEMORY TEST"			; $00FFC0 : Game title
+	;	 0123456789ABCDEF01234
+	db	"SA-1 RAM PROTECT TEST"			; $00FFC0 : Game title
 	pad $00FFD5
 	db	$23|!RomType				; $00FFD5 : Map mode (Slow 2.68 MHz)
 	db	$35					; $00FFD6 : Cartridge type (ROM + RAM + Battery + SA-1)
@@ -138,9 +142,11 @@ else
 endif
 
 	;	 0123456789ABCDEF
-	db	"SA-1 MEMORY TEST"
-	db	" "
-	db	"ver 0.00"
+	db	"SA-1 RAM PROTECTION TEST", $0D, $0A
+	db	"ver "
+	%DataAsciiNumber(!VersionMajor, 1, None)
+	db	"."
+	%DataAsciiNumber(!VersionMinor, 2, Zero)
 	db	$0D, $0A
 	db	"absindx"
 	db	$0D, $0A
@@ -775,6 +781,14 @@ TransferTilemap_Main:
 
 .Tilemap
 incbin	"Tilemap/Tilemap_Main.bin"
+
+		; patch version
+		pushpc
+		org	.Tilemap+$09A
+		%DataAsciiNumber(!VersionMajor, 1, Zero)
+		db	"."
+		%DataAsciiNumber(!VersionMinor, 2, Zero)
+		pullpc
 
 DrawHex:	; .shortm, .shortx
 DrawHexA:	TAX

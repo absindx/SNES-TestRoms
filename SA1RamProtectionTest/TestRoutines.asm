@@ -26,38 +26,47 @@ incsrc	"MessageID.asm"
 
 !TestDefinedMax		:= 0
 macro	TestDefineMain(id, name)
-!TestDefined_<id>	= 1
+	; defined flag
+	!TestDefined_<id>	= 1
 
+	; check id skip
+	if !TestDefinedMax+1 < <id>
+		; MEMO: warn cannot output multiple outputs.
+		print "Is the ID definition being skipped? ", dec(!TestDefinedMax), " -> ", dec(<id>)
+	endif
+
+	; update id
 	if !TestDefinedMax < <id>
 		!TestDefinedMax	:= <id>
 	endif
 
+	; define labels
 	pushpc
 		org	TestResults+<id>
 		if <id> >= 100
-TestResults_<id>_<id>:		skip 1
+			TestResults_<id>_<id>:		skip 1
 		elseif <id> >= 10
-TestResults_0<id>_<name>:	skip 1
+			TestResults_0<id>_<name>:	skip 1
 		else
-TestResults_00<id>_<name>:	skip 1
+			TestResults_00<id>_<name>:	skip 1
 		endif
 
 		org	TestActuals+<id>
 		if <id> >= 100
-TestActuals_<id>_<id>:		skip 1
+			TestActuals_<id>_<id>:		skip 1
 		elseif <id> >= 10
-TestActuals_0<id>_<name>:	skip 1
+			TestActuals_0<id>_<name>:	skip 1
 		else
-TestActuals_00<id>_<name>:	skip 1
+			TestActuals_00<id>_<name>:	skip 1
 		endif
 
 		org	TestExpects+<id>
 		if <id> >= 100
-TestExpects_<id>_<id>:		skip 1
+			TestExpects_<id>_<id>:		skip 1
 		elseif <id> >= 10
-TestExpects_0<id>_<name>:	skip 1
+			TestExpects_0<id>_<name>:	skip 1
 		else
-TestExpects_00<id>_<name>:	skip 1
+			TestExpects_00<id>_<name>:	skip 1
 		endif
 	pullpc
 
@@ -243,6 +252,15 @@ endmacro
 		;%TestDefine(TestID_SNES_BwRamProtectMapping_M00)
 		;%TestDefine(TestID_SNES_BwRamProtectMapping_M00P)
 		;%TestDefine(TestID_SNES_BwRamProtectMapping_M01)
+		; Write order
+		;%TestDefine(TestID_SA1_IRamProtectionOrder_CS)
+		;%TestDefine(TestID_SA1_IRamProtectionOrder_SC)
+		;%TestDefine(TestID_SNES_IRamProtectionOrder_CS)
+		;%TestDefine(TestID_SNES_IRamProtectionOrder_SC)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_CS)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_SC)
+		;%TestDefine(TestID_SNES_BwRamProtectOrder_CS)
+		;%TestDefine(TestID_SNES_BwRamProtectOrder_SC)
 		; Wrong register
 		;%TestDefine(TestID_SNES_CIWP)
 		;%TestDefine(TestID_SNES_CBWE)
@@ -364,9 +382,9 @@ UpdateScreen:
 		RTS
 
 .Message_Result
-	db	"RUNNING"
-	db	"PASSED", $0
-	db	"FAILED", $0
+		db	"RUNNING"
+		db	"PASSED", $0
+		db	"FAILED", $0
 
 		; space pad, right align
 DrawByteDecimalRight:
@@ -782,16 +800,16 @@ SA1TestMain:
 
 		SEP	#$30
 		; .shortm, .shortx
-if !StopFailed
+	if !StopFailed
 		LDA	!SA1_CFR			;\  process message from SNES-CPU
 		AND.b	#$0F				;/
 		CMP.b	#!SNESStatus_BootFailed
 		BNE	+
 		BRA	SA1TestFinished
 +
-else
+	else
 		; none
-endif
+	endif
 
 		LDA.b	#!TestID_SA1_IRamProtection_Boot
 		JMP	TestSa1Execute
@@ -1337,33 +1355,46 @@ TestSnesBwRamProtection_Snes:
 ;--------------------------------------------------
 
 macro	ClearResult()
-		if !Debug == 1
-			STZ	!DisplayResult
-		endif
+	if !Debug == 1
+		STZ	!DisplayResult
+	endif
 endmacro
 
 macro	TestPattern(target, id)
-		!TestID		:= <id>
+	!TestID		:= <id>
 
-		if <id> >= 100
-			TestPattern_<target>_<id>:
-		elseif <id> >= 10
-			TestPattern_<target>_0<id>:
-		else
-			TestPattern_<target>_00<id>:
-		endif
+	if <id> >= 100
+		TestPattern_<target>_<id>:
+	elseif <id> >= 10
+		TestPattern_<target>_0<id>:
+	else
+		TestPattern_<target>_00<id>:
+	endif
 endmacro
 macro	TestPattern_ID(id)
-		!TestID		:= <id>
+	!TestID		:= <id>
 endmacro
 macro	TestPattern_SNES()
-		%TestPattern(SNES, !TestID)
+	%TestPattern(SNES, !TestID)
 endmacro
 macro	TestPattern_SA1()
-		%TestPattern(SA1, !TestID)
+	%TestPattern(SA1, !TestID)
 endmacro
 
+!TestHandlerMax	:= 0
 macro	TestHandlerDefine(id)
+	; check id skip
+	if !TestHandlerMax+1 < <id>
+		; can't use warn. f
+		print "Is the test pattern definition being skipped? ", dec(!TestHandlerMax), " -> ", dec(<id>)
+	endif
+
+	; update id
+	if !TestHandlerMax < <id>
+		!TestHandlerMax	:= <id>
+	endif
+
+	; define data
 	if defined("TestDefined_<id>")
 		org	TestHandlerTable+((<id>-1)*4)
 		if <id> >= 100
@@ -1582,11 +1613,19 @@ TestHandlerTable:
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMapping_M00)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMapping_M00P)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMapping_M01)
+		%TestHandlerDefine(!TestID_SA1_IRamProtectionOrder_CS)
+		%TestHandlerDefine(!TestID_SA1_IRamProtectionOrder_SC)
+		%TestHandlerDefine(!TestID_SNES_IRamProtectionOrder_CS)
+		%TestHandlerDefine(!TestID_SNES_IRamProtectionOrder_SC)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_CS)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_SC)
+		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_CS)
+		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_SC)
 		%TestHandlerDefine(!TestID_SNES_CIWP)
 		%TestHandlerDefine(!TestID_SNES_CBWE)
 		%TestHandlerDefine(!TestID_SA1_SIWP)
 		%TestHandlerDefine(!TestID_SA1_SBWE)
-		%TestHandlerDefine(!TestID_SA1_SBWE)
+		%TestHandlerDefine(!TestID_SA1_BWPA)
 		%TestHandlerDefine(!TestID_SNES_IRamProtection_Stop)
 		%TestHandlerDefine(!TestID_SNES_IRamProtection_StopChange)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtection_Stop)
@@ -1599,7 +1638,6 @@ TestHandlerTable:
 		%TestHandlerDefine(!TestID_SA1_BwRamProtection_Reboot)
 		pullpc
 		skip	!TestID_Count*4
-
 
 TestPattern_Pass:
 		SEP	#$30
@@ -1915,54 +1953,54 @@ macro	TestSa1BwRamProtection(id, target, setSWEN, setCWEN, setBWPA, exceptedSnes
 ;   P.V = setSWEN
 %TestPattern_ID(<id>)	;-----
 %TestPattern_SA1()
-		if <setCWEN> == 0
-			;	  nvmxdizc
-			REP	#%01100000
-			SEP	#%00010000
-			; .longm, .shortx, CLV
-		else
-			;	  nvmxdizc
-			REP	#%00100000
-			SEP	#%01010000
-			; .longm, .shortx, SEV
-		endif
+	if <setCWEN> == 0
+		;	  nvmxdizc
+		REP	#%01100000
+		SEP	#%00010000
+		; .longm, .shortx, CLV
+	else
+		;	  nvmxdizc
+		REP	#%00100000
+		SEP	#%01010000
+		; .longm, .shortx, SEV
+	endif
 
 		LDA.w	#(<testExcepts><<8)|<id>
 		LDX.b	#(<exceptedSa1Enable><<7)
 		LDY.b	#<exceptedSa1Area>
 
-		if <target> == 0
-			; Target: SNES
-			JMP	TestSnesBwRamProtection_Sa1
-		else
-			; Target: SA-1
-			JMP	TestSa1BwRamProtection_Sa1
-		endif
+	if <target> == 0
+		; Target: SNES
+		JMP	TestSnesBwRamProtection_Sa1
+	else
+		; Target: SA-1
+		JMP	TestSa1BwRamProtection_Sa1
+	endif
 
 %TestPattern_SNES()
-		if <setSWEN> == 0
-			;	  nvmxdizc
-			REP	#%01000000
-			SEP	#%00110000
-			; .shortm, .shortx, CLV
-		else
-			;	  nvmxdizc
-			REP	#%00000000
-			SEP	#%01110000
-			; .shortm, .shortx, SEV
-		endif
+	if <setSWEN> == 0
+		;	  nvmxdizc
+		REP	#%01000000
+		SEP	#%00110000
+		; .shortm, .shortx, CLV
+	else
+		;	  nvmxdizc
+		REP	#%00000000
+		SEP	#%01110000
+		; .shortm, .shortx, SEV
+	endif
 
 		LDA.b	#<setBWPA>
 		LDX.b	#(<exceptedSnesEnable><<7)
 		LDY.b	#<exceptedSnesArea>
 
-		if <target> == 0
-			; Target: SNES
-			JMP	TestSnesBwRamProtection_Snes
-		else
-			; Target: SA-1
-			JMP	TestSa1BwRamProtection_Snes
-		endif
+	if <target> == 0
+		; Target: SNES
+		JMP	TestSnesBwRamProtection_Snes
+	else
+		; Target: SA-1
+		JMP	TestSa1BwRamProtection_Snes
+	endif
 endmacro
 
 

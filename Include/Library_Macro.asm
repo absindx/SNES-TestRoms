@@ -70,6 +70,58 @@ macro	DefineLocal(name, addr, size)
 	pullpc
 endmacro
 
+; Usage:
+;   %DataAsciiNumber(123, 5, Zero)
+;   ; -> db $30, $30, $31, $32, $33	; "00123"
+;   %DataAsciiNumber(123, 5, Right)
+;   ; -> db $20, $20, $31, $32, $33	; "  123"
+;   %DataAsciiNumber(123, 5, Left)
+;   ; -> db $31, $32, $33, $20, $20	; "123  "
+;   %DataAsciiNumber(123, 5, None)
+;   ; -> db $31, $32, $33		; "123"
+; NOTE: Negative numbers not supported.
+!DataAsciiNumber_PadType_Zero	= 0
+!DataAsciiNumber_PadType_Right	= 1
+!DataAsciiNumber_PadType_Left	= 2
+!DataAsciiNumber_PadType_None	= 3
+macro	DataAsciiNumber(value, digit, padtype)
+	if     !DataAsciiNumber_PadType_<padtype> == !DataAsciiNumber_PadType_Zero
+		db	$30+((<value>/(10**(<digit>-1)))%10)
+		if (<digit>-1) > 0
+			%DataAsciiNumber(<value>, (<digit>-1), <padtype>)
+		endif
+	elseif !DataAsciiNumber_PadType_<padtype> == !DataAsciiNumber_PadType_Right
+		if (<digit>-1) == 0 || <value> > (10**(<digit>-1))
+			db	$30+((<value>/(10**(<digit>-1)))%10)
+		else
+			db	" "
+		endif
+		if (<digit>-1) > 0
+			%DataAsciiNumber(<value>, (<digit>-1), <padtype>)
+		endif
+	elseif !DataAsciiNumber_PadType_<padtype> == !DataAsciiNumber_PadType_Left
+		if (<digit>-1) == 0 || <value> > (10**(<digit>-1))
+			db	$30+((<value>/(10**(<digit>-1)))%10)
+		endif
+		if (<digit>-1) > 0
+			%DataAsciiNumber(<value>, (<digit>-1), <padtype>)
+		endif
+		if (<digit>-1) == 0 || <value> > (10**(<digit>-1))
+			; none
+		else
+			db	" "
+		endif
+	else
+		if (<digit>-1) == 0 || <value> > (10**(<digit>-1))
+			db	$30+((<value>/(10**(<digit>-1)))%10)
+		endif
+		if (<digit>-1) > 0
+			%DataAsciiNumber(<value>, (<digit>-1), <padtype>)
+		endif
+	endif
+
+endmacro
+
 ;--------------------------------------------------
 
 function ScreenVramAddress(base, w, x, y)	= (base+((w*y)+x))
