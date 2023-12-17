@@ -50,11 +50,9 @@ else
 endif
 
 	check bankcross off
-	if defined("DEBUG")
-		padbyte	$00
-	else
-		padbyte	$FF
-	endif
+
+	!BlankByte	= select(defined("DEBUG"), $FF, $00)
+	padbyte	!BlankByte
 
 	pad	!EofAddress
 	check bankcross on

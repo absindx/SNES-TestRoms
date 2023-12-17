@@ -186,12 +186,12 @@ includeonce
 !TestID_SA1_BwRamProtection_E81		= 144	;  SA-1   BW-RAM  $8081/$80--  $400000	SWEN = 1, CWEN = 1, BWPA = $81 ($400000-$4001FF) * BWPA is SNES CPU only, but it also affects SA-1. Undocumented
 
 ; I-RAM Mirroring				; TARGET  MEMORY   SNES/SA-1   ADDRESS	DESCRIPTION
-!TestID_SA1_IRamMirror_000000		= 145	;  SA-1   I-RAM     $FF/$FF    $000000	ADDR -> (SNES) $00-3F:3000-3?FF,$80-BF:3000-3?FF / (SA-1)                  $00-3F:3000-????,$80-BF:0000-????,$80-BF:3000-????
-!TestID_SA1_IRamMirror_003000		= 146	;  SA-1   I-RAM     $FF/$FF    $003000	ADDR -> (SNES) $00-3F:3000-3?FF,$80-BF:3000-3?FF / (SA-1) $00-3F:0000-????,                 $80-BF:0000-????,$80-BF:3000-????
-!TestID_SA1_IRamMirror_800000		= 147	;  SA-1   I-RAM     $FF/$FF    $800000	ADDR -> (SNES) $00-3F:3000-3?FF,$80-BF:3000-3?FF / (SA-1) $00-3F:0000-????,$00-3F:3000-????,                 $80-BF:3000-????
-!TestID_SA1_IRamMirror_803000		= 148	;  SA-1   I-RAM     $FF/$FF    $803000	ADDR -> (SNES) $00-3F:3000-3?FF,$80-BF:3000-3?FF / (SA-1) $00-3F:0000-????,$00-3F:3000-????,$80-BF:0000-????
-!TestID_SNES_IRamMirror_003000		= 149	;  SNES   I-RAM     $FF/$FF    $003000	ADDR -> (SNES)                  $80-BF:3000-3?FF / (SA-1) $00-3F:0000-????,$00-3F:3000-????,$80-BF:0000-????,$80-BF:3000-????
-!TestID_SNES_IRamMirror_803000		= 150	;  SNES   I-RAM     $FF/$FF    $003000	ADDR -> (SNES) $00-3F:3000-3?FF                  / (SA-1) $00-3F:0000-????,$00-3F:3000-????,$80-BF:0000-????,$80-BF:3000-????
+!TestID_SA1_IRamMirror_000000		= 145	;  SA-1   I-RAM     $FF/$FF    $000000	ADDR -> (SNES) $00-3F:3000-37FF,$80-BF:3000-37FF / (SA-1)                  $00-3F:3000-37FF,$80-BF:0000-07FF,$80-BF:3000-37FF
+!TestID_SA1_IRamMirror_003000		= 146	;  SA-1   I-RAM     $FF/$FF    $003000	ADDR -> (SNES) $00-3F:3000-37FF,$80-BF:3000-37FF / (SA-1) $00-3F:0000-07FF,                 $80-BF:0000-07FF,$80-BF:3000-37FF
+!TestID_SA1_IRamMirror_800000		= 147	;  SA-1   I-RAM     $FF/$FF    $800000	ADDR -> (SNES) $00-3F:3000-37FF,$80-BF:3000-37FF / (SA-1) $00-3F:0000-07FF,$00-3F:3000-37FF,                 $80-BF:3000-37FF
+!TestID_SA1_IRamMirror_803000		= 148	;  SA-1   I-RAM     $FF/$FF    $803000	ADDR -> (SNES) $00-3F:3000-37FF,$80-BF:3000-37FF / (SA-1) $00-3F:0000-07FF,$00-3F:3000-37FF,$80-BF:0000-07FF
+!TestID_SNES_IRamMirror_003000		= 149	;  SNES   I-RAM     $FF/$FF    $003000	ADDR -> (SNES)                  $80-BF:3000-37FF / (SA-1) $00-3F:0000-07FF,$00-3F:3000-37FF,$80-BF:0000-07FF,$80-BF:3000-37FF
+!TestID_SNES_IRamMirror_803000		= 150	;  SNES   I-RAM     $FF/$FF    $003000	ADDR -> (SNES) $00-3F:3000-37FF                  / (SA-1) $00-3F:0000-07FF,$00-3F:3000-37FF,$80-BF:0000-07FF,$80-BF:3000-37FF
 
 ; I-RAM Mirroring Protection			; TARGET  MEMORY   SNES/SA-1   ADDRESS	DESCRIPTION
 !TestID_SA1_IRamProtectMirror_000000	= 151	;  SA-1   I-RAM     $00/$03    $000000	(SA-1) ADDR -> $003000
