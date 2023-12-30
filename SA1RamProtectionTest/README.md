@@ -14,6 +14,8 @@ Uses IRQ from SA-1 to SNES CPU for sending test data.
 
 ## Notes  
 
+See [MessageID.asm](MessageID.asm) for TEST ID assignment.  
+
 * TEST ID : 35, 38  
   BW-RAM Protection will not be reflected unless protection is enabled on both SNES and SA-1.  
 * TEST ID : 52-56, 104-108  
@@ -31,9 +33,10 @@ See [RamMap.asm](RamMap.asm) for other memory usage.
 ## Test environment  
 
 * SNES:  
+  * Super Famicom  
   * Board: `SNSRGB01`  
-* SA-1:  
-  * Board: `SHVC-1L5B-20` [(A4WJ expanded to 1Mbit SRAM)](https://absindx.github.io/ZpIndIndY/Articles/SnesSA1Cartridge/)  
+* SA-1 cartridge:  
+  * Board: `SHVC-1L5B-20` [(A4WJ expanded to 1MBit of SRAM)](https://absindx.github.io/ZpIndIndY/Articles/SnesSA1Cartridge/)  
   * Chip: `RF5A123 / 6KD 80`  
 
 

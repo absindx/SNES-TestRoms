@@ -592,7 +592,7 @@ ScreenOff:
 ScreenOn:
 		PHP
 		REP	#$10
-		;SEP	#$20
+		SEP	#$20
 		; .shortm, .longx
 
 		; Set fixed color data
