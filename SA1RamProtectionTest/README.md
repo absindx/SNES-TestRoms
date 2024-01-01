@@ -22,6 +22,10 @@ See [MessageID.asm](MessageID.asm) for TEST ID assignment.
   Even if a value larger than `$0A` is written to `BWPA`, the effective range of BW-RAM Protection is up to `$43FFFF`.  
 * TEST ID : 93-144  
   BW-RAM Protection's `BWPA` is a register for the SNES CPU, but it also affects the SA-1 protection area.  
+* TEST ID : 145-162  
+  It seems that the unmapped area on the SA-1 side returns the old data bus value. (similar to PPU open bus...?)  
+  Macro `%SetSa1Databus()` sets the bus to any value.  
+  Since the details are still unknown, I plan to create another test ROM.  
 
 ## For automated testing  
 
