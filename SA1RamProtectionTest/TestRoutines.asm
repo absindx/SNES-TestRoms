@@ -25,7 +25,7 @@ incsrc	"MessageID.asm"
 ;--------------------------------------------------
 
 !Sa1StartTestID		:= !TestID_SA1_IRamProtection_Boot
-;!Sa1StartTestID		:= !TestID_SA1_BwRamProtectMapping_Enable
+;!Sa1StartTestID		:= !TestID_SA1_IRamProtectionOrder_CS
 
 !TestMirroringValue	= $AA
 !TestMirroringUpdate	= $BB
@@ -233,56 +233,56 @@ endmacro
 		%TestDefine(TestID_SA1_BwRamProtection_E80)
 		%TestDefine(TestID_SA1_BwRamProtection_E81)
 		; I-RAM Mirroring
+		%TestDefine(TestID_SNES_IRamMirror_003000)
+		%TestDefine(TestID_SNES_IRamMirror_803000)
 		%TestDefine(TestID_SA1_IRamMirror_000000)
 		%TestDefine(TestID_SA1_IRamMirror_003000)
 		%TestDefine(TestID_SA1_IRamMirror_800000)
 		%TestDefine(TestID_SA1_IRamMirror_803000)
-		%TestDefine(TestID_SNES_IRamMirror_003000)
-		%TestDefine(TestID_SNES_IRamMirror_803000)
 		; I-RAM Mirroring Protection
+		%TestDefine(TestID_SNES_IRamProtectMirror_803000)
 		%TestDefine(TestID_SA1_IRamProtectMirror_000000)
 		%TestDefine(TestID_SA1_IRamProtectMirror_800000)
 		%TestDefine(TestID_SA1_IRamProtectMirror_803000)
-		%TestDefine(TestID_SNES_IRamProtectMirror_803000)
 		; BW-RAM Mirroring
-		%TestDefine(TestID_SA1_BwRamMirror_400000)
-		%TestDefine(TestID_SA1_BwRamMirror_500000)
-		%TestDefine(TestID_SA1_BwRamMirror_006000)
-		%TestDefine(TestID_SA1_BwRamMirror_806000)
 		%TestDefine(TestID_SNES_BwRamMirror_400000)
 		%TestDefine(TestID_SNES_BwRamMirror_500000)
 		%TestDefine(TestID_SNES_BwRamMirror_006000)
 		%TestDefine(TestID_SNES_BwRamMirror_806000)
+		%TestDefine(TestID_SA1_BwRamMirror_400000)
+		%TestDefine(TestID_SA1_BwRamMirror_500000)
+		%TestDefine(TestID_SA1_BwRamMirror_006000)
+		%TestDefine(TestID_SA1_BwRamMirror_806000)
 		; BW-RAM Mirroring Protection
-		%TestDefine(TestID_SA1_BwRamProtectMirror_006000)
-		%TestDefine(TestID_SA1_BwRamProtectMirror_806000)
 		%TestDefine(TestID_SNES_BwRamProtectMirror_006000)
 		%TestDefine(TestID_SNES_BwRamProtectMirror_806000)
-		%TestDefine(TestID_SA1_BwRamProtectMapping_Enable)
-		%TestDefine(TestID_SA1_BwRamProtectMapping_M00P)
-		%TestDefine(TestID_SA1_BwRamProtectMapping_M00E)
-		%TestDefine(TestID_SA1_BwRamProtectMapping_M01)
+		%TestDefine(TestID_SA1_BwRamProtectMirror_006000)
+		%TestDefine(TestID_SA1_BwRamProtectMirror_806000)
 		%TestDefine(TestID_SNES_BwRamProtectMapping_Enable)
 		%TestDefine(TestID_SNES_BwRamProtectMapping_M00P)
 		%TestDefine(TestID_SNES_BwRamProtectMapping_M00E)
 		%TestDefine(TestID_SNES_BwRamProtectMapping_M01)
+		%TestDefine(TestID_SA1_BwRamProtectMapping_Enable)
+		%TestDefine(TestID_SA1_BwRamProtectMapping_M00P)
+		%TestDefine(TestID_SA1_BwRamProtectMapping_M00E)
+		%TestDefine(TestID_SA1_BwRamProtectMapping_M01)
 		; Write order
-		;%TestDefine(TestID_SA1_IRamProtectionOrder_CS)
-		;%TestDefine(TestID_SA1_IRamProtectionOrder_SC)
-		;%TestDefine(TestID_SNES_IRamProtectionOrder_CS)
-		;%TestDefine(TestID_SNES_IRamProtectionOrder_SC)
-		;%TestDefine(TestID_SA1_BwRamProtectOrder_CSB)
-		;%TestDefine(TestID_SA1_BwRamProtectOrder_CBS)
-		;%TestDefine(TestID_SA1_BwRamProtectOrder_SCB)
-		;%TestDefine(TestID_SA1_BwRamProtectOrder_SBC)
-		;%TestDefine(TestID_SA1_BwRamProtectOrder_BCS)
-		;%TestDefine(TestID_SA1_BwRamProtectOrder_BSC)
+		%TestDefine(TestID_SNES_IRamProtectionOrder_CS)
+		%TestDefine(TestID_SNES_IRamProtectionOrder_SC)
+		%TestDefine(TestID_SA1_IRamProtectionOrder_CS)
+		%TestDefine(TestID_SA1_IRamProtectionOrder_SC)
 		;%TestDefine(TestID_SNES_BwRamProtectOrder_CSB)
 		;%TestDefine(TestID_SNES_BwRamProtectOrder_CBS)
 		;%TestDefine(TestID_SNES_BwRamProtectOrder_SCB)
 		;%TestDefine(TestID_SNES_BwRamProtectOrder_SBC)
 		;%TestDefine(TestID_SNES_BwRamProtectOrder_BCS)
 		;%TestDefine(TestID_SNES_BwRamProtectOrder_BSC)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_CSB)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_CBS)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_SCB)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_SBC)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_BCS)
+		;%TestDefine(TestID_SA1_BwRamProtectOrder_BSC)
 		; Wrong register
 		;%TestDefine(TestID_SNES_CIWP)
 		;%TestDefine(TestID_SNES_CBWE)
@@ -352,10 +352,22 @@ UpdateScreen:
 		LDX	!TestSnesStackPointerBootL
 		JSR	DrawHexX
 
+		%ScreenVramAddress($1A, $09)
+		LDX	!TestSnesStackPointerRebootH
+		JSR	DrawHexX
+		LDX	!TestSnesStackPointerRebootL
+		JSR	DrawHexX
+
 		%ScreenVramAddress($0D, $0A)
 		LDX	!TestSa1StackPointerBootH
 		JSR	DrawHexX
 		LDX	!TestSa1StackPointerBootL
+		JSR	DrawHexX
+
+		%ScreenVramAddress($1A, $0A)
+		LDX	!TestSa1StackPointerRebootH
+		JSR	DrawHexX
+		LDX	!TestSa1StackPointerRebootL
 		JSR	DrawHexX
 
 		; Test ID
@@ -1617,8 +1629,6 @@ TestBwRamMirrorCheck:
 
 		RTS
 
-TestBwRamProtectMirror:
-
 
 
 ;--------------------------------------------------
@@ -1857,52 +1867,52 @@ TestHandlerTable:
 		%TestHandlerDefine(!TestID_SA1_BwRamProtection_E41)
 		%TestHandlerDefine(!TestID_SA1_BwRamProtection_E80)
 		%TestHandlerDefine(!TestID_SA1_BwRamProtection_E81)
+		%TestHandlerDefine(!TestID_SNES_IRamMirror_003000)
+		%TestHandlerDefine(!TestID_SNES_IRamMirror_803000)
 		%TestHandlerDefine(!TestID_SA1_IRamMirror_000000)
 		%TestHandlerDefine(!TestID_SA1_IRamMirror_003000)
 		%TestHandlerDefine(!TestID_SA1_IRamMirror_800000)
 		%TestHandlerDefine(!TestID_SA1_IRamMirror_803000)
-		%TestHandlerDefine(!TestID_SNES_IRamMirror_003000)
-		%TestHandlerDefine(!TestID_SNES_IRamMirror_803000)
+		%TestHandlerDefine(!TestID_SNES_IRamProtectMirror_803000)
 		%TestHandlerDefine(!TestID_SA1_IRamProtectMirror_000000)
 		%TestHandlerDefine(!TestID_SA1_IRamProtectMirror_800000)
 		%TestHandlerDefine(!TestID_SA1_IRamProtectMirror_803000)
-		%TestHandlerDefine(!TestID_SNES_IRamProtectMirror_803000)
-		%TestHandlerDefine(!TestID_SA1_BwRamMirror_400000)
-		%TestHandlerDefine(!TestID_SA1_BwRamMirror_500000)
-		%TestHandlerDefine(!TestID_SA1_BwRamMirror_006000)
-		%TestHandlerDefine(!TestID_SA1_BwRamMirror_806000)
 		%TestHandlerDefine(!TestID_SNES_BwRamMirror_400000)
 		%TestHandlerDefine(!TestID_SNES_BwRamMirror_500000)
 		%TestHandlerDefine(!TestID_SNES_BwRamMirror_006000)
 		%TestHandlerDefine(!TestID_SNES_BwRamMirror_806000)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectMirror_006000)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectMirror_806000)
+		%TestHandlerDefine(!TestID_SA1_BwRamMirror_400000)
+		%TestHandlerDefine(!TestID_SA1_BwRamMirror_500000)
+		%TestHandlerDefine(!TestID_SA1_BwRamMirror_006000)
+		%TestHandlerDefine(!TestID_SA1_BwRamMirror_806000)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMirror_006000)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMirror_806000)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_Enable)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_M00P)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_M00E)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_M01)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectMirror_006000)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectMirror_806000)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMapping_Enable)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMapping_M00P)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMapping_M00E)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectMapping_M01)
-		%TestHandlerDefine(!TestID_SA1_IRamProtectionOrder_CS)
-		%TestHandlerDefine(!TestID_SA1_IRamProtectionOrder_SC)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_Enable)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_M00P)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_M00E)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectMapping_M01)
 		%TestHandlerDefine(!TestID_SNES_IRamProtectionOrder_CS)
 		%TestHandlerDefine(!TestID_SNES_IRamProtectionOrder_SC)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_CSB)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_CBS)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_SCB)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_SBC)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_BCS)
-		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_BSC)
+		%TestHandlerDefine(!TestID_SA1_IRamProtectionOrder_CS)
+		%TestHandlerDefine(!TestID_SA1_IRamProtectionOrder_SC)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_CSB)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_CBS)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_SCB)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_SBC)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_BCS)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectOrder_BSC)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_CSB)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_CBS)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_SCB)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_SBC)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_BCS)
+		%TestHandlerDefine(!TestID_SA1_BwRamProtectOrder_BSC)
 		%TestHandlerDefine(!TestID_SNES_CIWP)
 		%TestHandlerDefine(!TestID_SNES_CBWE)
 		%TestHandlerDefine(!TestID_SA1_SIWP)
@@ -2157,7 +2167,6 @@ TestPattern_Pass:
 %TestPattern_SNES()
 		JMP	SetSnesIRam
 
-
 macro	TestSnesIRamProtectionDx(id, expected)
 %TestPattern_ID(<id>)	;-----
 %TestPattern_SA1()
@@ -2397,31 +2406,7 @@ endmacro
 %TestSa1BwRamProtection(!TestID_SA1_BwRamProtection_E80,		1, 1,   1,   $80, 1,   $00, 1,   $00, $80)
 %TestSa1BwRamProtection(!TestID_SA1_BwRamProtection_E81,		1, 1,   1,   $81, 1,   $00, 1,   $00, $80)
 
-
 ;--- I-RAM Mirroring
-macro	TestSa1IRamMirror(id, sa1Expected, snesExpected)
-%TestPattern_ID(<id>)	;-----
-%TestPattern_SA1()
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA.b	#<id>
-		LDX.b	#<sa1Expected>
-		JMP	TestIRamMirror_Sa1
-
-%TestPattern_SNES()
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA.b	#<snesExpected>
-		JMP	TestIRamMirror_Snes
-endmacro
-
-%TestSa1IRamMirror(!TestID_SA1_IRamMirror_000000, %01010101, %01000100)
-%TestSa1IRamMirror(!TestID_SA1_IRamMirror_003000, %01010101, %01000100)
-%TestSa1IRamMirror(!TestID_SA1_IRamMirror_800000, %01010101, %01000100)
-%TestSa1IRamMirror(!TestID_SA1_IRamMirror_803000, %01010101, %01000100)
-
 %TestPattern_ID(!TestID_SNES_IRamMirror_003000)	;----
 %TestPattern_SA1()
 		SEP	#$30
@@ -2435,6 +2420,7 @@ endmacro
 		%SoftwareJSR(ClearIRam)
 		SEP	#$30
 		; .shortm, .shortx
+		%SetSa1Databus(!TestMirroringUpdate)
 		%SendSA1Message(!Message_TestSnesExecute, $00)
 
 		%SoftwareJSR(TestIRamMirrorCheck_Sa1)
@@ -2478,6 +2464,7 @@ endmacro
 		%SoftwareJSR(ClearIRam)
 		SEP	#$30
 		; .shortm, .shortx
+		%SetSa1Databus(!TestMirroringUpdate)
 		%SendSA1Message(!Message_TestSnesExecute, $00)
 
 		%SoftwareJSR(TestIRamMirrorCheck_Sa1)
@@ -2508,8 +2495,65 @@ endmacro
 		JSR	WriteTestIRamSnesActual
 		JMP	TestResultCheck
 
+macro	TestSa1IRamMirror(id, sa1Expected, snesExpected)
+%TestPattern_ID(<id>)	;-----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#<id>
+		LDX.b	#<sa1Expected>
+		JMP	TestIRamMirror_Sa1
+
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#<snesExpected>
+		JMP	TestIRamMirror_Snes
+endmacro
+
+%TestSa1IRamMirror(!TestID_SA1_IRamMirror_000000, %01010101, %01000100)
+%TestSa1IRamMirror(!TestID_SA1_IRamMirror_003000, %01010101, %01000100)
+%TestSa1IRamMirror(!TestID_SA1_IRamMirror_800000, %01010101, %01000100)
+%TestSa1IRamMirror(!TestID_SA1_IRamMirror_803000, %01010101, %01000100)
 
 ;--- I-RAM Mirroring Protection
+%TestPattern_ID(!TestID_SNES_IRamProtectMirror_803000)	;----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#%11111111
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, %00111111)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA	!Sa1MessageByte
+		STA	!SA1_SIWP
+
+		JSR	WriteTestIRamSnesExpected
+
+		LDA.b	#$00
+		%TestIRamAreaProtect($803000)
+		%TestIRamAreaProtect($803100)
+		%TestIRamAreaProtect($803200)
+		%TestIRamAreaProtect($803300)
+		%TestIRamAreaProtect($803400)
+		%TestIRamAreaProtect($803500)
+		%TestIRamAreaProtect($803600)
+		%TestIRamAreaProtect($803700)
+
+		JSR	WriteTestIRamSnesActual
+		JMP	TestResultCheck
+
 %TestPattern_ID(!TestID_SA1_IRamProtectMirror_000000)	;----
 %TestPattern_SA1()
 		SEP	#$30
@@ -2598,42 +2642,43 @@ endmacro
 %TestPattern_SNES()
 		JMP	SetSnesIRam
 
-%TestPattern_ID(!TestID_SNES_IRamProtectMirror_803000)	;----
+;--- BW-RAM Mirroring
+macro	TestSnesBwRamMirror(id, target, sa1Expected, snesExpected)
+%TestPattern_ID(<id>)	;-----
 %TestPattern_SA1()
+		%SoftwareJSR(ClearBwRam)
+
 		SEP	#$30
 		; .shortm, .shortx
 
-		LDA.b	#%11111111
-		STA	!SA1_CIWP
-
-		%SendSA1Message(!Message_TestReady, !TestID)
-		%SendSA1Message(!Message_TestSnesExecute, %00111111)
-
-		%TestReturn_SA1()
+		LDA.b	#<id>
+		LDX.b	#<sa1Expected>
+		JMP	TestBwRamMirror_Sa1
 
 %TestPattern_SNES()
 		SEP	#$30
 		; .shortm, .shortx
+		CLV
 
 		LDA	!Sa1MessageByte
-		STA	!SA1_SIWP
+		BNE	.Call2
 
-		JSR	WriteTestIRamSnesExpected
+.Call1		LDA.b	#$80
+		STA	!SA1_SBWE
+		STZ	!SA1_BWPA
 
-		LDA.b	#$00
-		%TestIRamAreaProtect($803000)
-		%TestIRamAreaProtect($803100)
-		%TestIRamAreaProtect($803200)
-		%TestIRamAreaProtect($803300)
-		%TestIRamAreaProtect($803400)
-		%TestIRamAreaProtect($803500)
-		%TestIRamAreaProtect($803600)
-		%TestIRamAreaProtect($803700)
+		LDA.b	#!TestMirroringValue
+		STA.l	<target>
 
-		JSR	WriteTestIRamSnesActual
+		RTS
+
+.Call2		LDA.b	#<snesExpected>
+		JSR	WriteTestBwRamSnesExpected
+		JSR	TestBwRamMirrorCheck
+		JSR	WriteTestBwRamSnesActual
 		JMP	TestResultCheck
+endmacro
 
-;--- BW-RAM Mirroring
 macro	TestSa1BwRamMirror(id, target, sa1Expected, snesExpected)
 %TestPattern_ID(<id>)	;-----
 %TestPattern_SA1()
@@ -2671,52 +2716,130 @@ macro	TestSa1BwRamMirror(id, target, sa1Expected, snesExpected)
 		JMP	TestResultCheck
 endmacro
 
-macro	TestSnesBwRamMirror(id, target, sa1Expected, snesExpected)
-%TestPattern_ID(<id>)	;-----
-%TestPattern_SA1()
-		%SoftwareJSR(ClearBwRam)
-
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA.b	#<id>
-		LDX.b	#<sa1Expected>
-		JMP	TestBwRamMirror_Sa1
-
-%TestPattern_SNES()
-		SEP	#$30
-		; .shortm, .shortx
-		CLV
-
-		LDA	!Sa1MessageByte
-		BNE	.Call2
-
-.Call1		LDA.b	#$80
-		STA	!SA1_SBWE
-		STZ	!SA1_BWPA
-
-		LDA.b	#!TestMirroringValue
-		STA.l	<target>
-
-		RTS
-
-.Call2		LDA.b	#<snesExpected>
-		JSR	WriteTestBwRamSnesExpected
-		JSR	TestBwRamMirrorCheck
-		JSR	WriteTestBwRamSnesActual
-		JMP	TestResultCheck
-endmacro
-
-%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_400000,	$400000, %01001111, %01000111)
-%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_500000,	$500000, %01001111, %01000111)
-%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_006000,	$006000, %01001111, %01000111)
-%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_806000,	$806000, %01001111, %01000111)
 %TestSnesBwRamMirror(!TestID_SNES_BwRamMirror_400000,	$400000, %01001111, %01000111)
 %TestSnesBwRamMirror(!TestID_SNES_BwRamMirror_500000,	$500000, %00000000, %00000000)
 %TestSnesBwRamMirror(!TestID_SNES_BwRamMirror_006000,	$006000, %01001111, %01000111)
 %TestSnesBwRamMirror(!TestID_SNES_BwRamMirror_806000,	$806000, %01001111, %01000111)
+%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_400000,	$400000, %01001111, %01000111)
+%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_500000,	$500000, %01001111, %01000111)
+%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_006000,	$006000, %01001111, %01000111)
+%TestSa1BwRamMirror(!TestID_SA1_BwRamMirror_806000,	$806000, %01001111, %01000111)
 
-;----- BW-RAM Mirroring Protection
+;--- BW-RAM Mirroring Protection
+%TestPattern_ID(!TestID_SNES_BwRamProtectMirror_006000)	;-----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#$00
+		STA	!SA1_CBWE
+		LDA.b	#$00
+		STA	!SA1_BMAP
+
+		%SetSa1Databus(!TestMirroringUpdate)
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, $00)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#$00
+		STA	!SA1_SBWE
+		LDA.b	#$00
+		STA	!SA1_BWPA
+		LDA.b	#$00
+		STA	!SA1_BMAPS
+
+		CLV					;\  Enable: OFF, Area: $00
+		LDA.b	#$00				;/
+		JSR	WriteTestBwRamSnesExpected
+
+		SEP	#$70
+		; .shortm, .shortx, SEV
+		%TestMemory($006000, l)
+		BEQ	+
+		CLV
++		%TestMemory($3F60FF, l)
+		BEQ	+
+		CLV
++		LDA.b	#$00
+		BVS	.Write
+.Disable	SEP	#$40
+		%TestMemory($006100, l)
+		BEQ	+
+		CLV
++		%TestMemory($3F61FF, l)
+		BEQ	+
+		CLV
++		LDA.b	#$FF
+		BVC	.Write
+.Area1		CLV
+		LDA.b	#$00
+.Write		JSR	WriteTestBwRamSnesActual
+
+		JMP	TestResultCheck
+
+%TestPattern_ID(!TestID_SNES_BwRamProtectMirror_806000)	;-----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#$00
+		STA	!SA1_CBWE
+		LDA.b	#$00
+		STA	!SA1_BMAP
+
+		%SetSa1Databus(!TestMirroringUpdate)
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, $00)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#$00
+		STA	!SA1_SBWE
+		LDA.b	#$00
+		STA	!SA1_BWPA
+		LDA.b	#$00
+		STA	!SA1_BMAPS
+
+		CLV					;\  Enable: OFF, Area: $00
+		LDA.b	#$00				;/
+		JSR	WriteTestBwRamSnesExpected
+
+		SEP	#$70
+		; .shortm, .shortx, SEV
+		%TestMemory($806000, l)
+		BEQ	+
+		CLV
++		%TestMemory($BF60FF, l)
+		BEQ	+
+		CLV
++		LDA.b	#$00
+		BVS	.Write
+.Disable	SEP	#$40
+		%TestMemory($806100, l)
+		BEQ	+
+		CLV
++		%TestMemory($BF61FF, l)
+		BEQ	+
+		CLV
++		LDA.b	#$FF
+		BVC	.Write
+.Area1		CLV
+		LDA.b	#$00
+.Write		JSR	WriteTestBwRamSnesActual
+
+		JMP	TestResultCheck
+
 %TestPattern_ID(!TestID_SA1_BwRamProtectMirror_006000)	;-----
 %TestPattern_SA1()
 		SEP	#$30
@@ -2732,8 +2855,8 @@ endmacro
 		%SetSa1Databus(!TestMirroringUpdate)
 
 		%SendSA1Message(!Message_TestReady, !TestID)
-		%SendSA1Message(!Message_TestSa1BwRamExpectedE, %00000000)	;\  Enable: OFF, Area: $01
-		%SendSA1Message(!Message_TestSa1BwRamExpectedA, %00000001)	;/
+		%SendSA1Message(!Message_TestSa1BwRamExpectedE, %00000000)	;\  Enable: OFF, Area: $00
+		%SendSA1Message(!Message_TestSa1BwRamExpectedA, %00000000)	;/
 		%SendSA1Message(!Message_TestSnesExecute, $00)
 
 		SEP	#$70
@@ -2756,7 +2879,7 @@ endmacro
 +		LDA.b	#$FF
 		BVC	.Write
 .Area1		CLV
-		LDA.b	#$01
+		LDA.b	#$00
 .Write		%SendSA1MessageAcc(!Message_TestSa1BwRamActualA)
 		LDA.b	#$00
 		BVC	+
@@ -2792,8 +2915,8 @@ endmacro
 		%SetSa1Databus(!TestMirroringUpdate)
 
 		%SendSA1Message(!Message_TestReady, !TestID)
-		%SendSA1Message(!Message_TestSa1BwRamExpectedE, %00000000)	;\  Enable: OFF, Area: $01
-		%SendSA1Message(!Message_TestSa1BwRamExpectedA, %00000001)	;/
+		%SendSA1Message(!Message_TestSa1BwRamExpectedE, %00000000)	;\  Enable: OFF, Area: $00
+		%SendSA1Message(!Message_TestSa1BwRamExpectedA, %00000000)	;/
 		%SendSA1Message(!Message_TestSnesExecute, $00)
 
 		SEP	#$70
@@ -2816,7 +2939,7 @@ endmacro
 +		LDA.b	#$FF
 		BVC	.Write
 .Area1		CLV
-		LDA.b	#$01
+		LDA.b	#$00
 .Write		%SendSA1MessageAcc(!Message_TestSa1BwRamActualA)
 		LDA.b	#$00
 		BVC	+
@@ -2836,120 +2959,6 @@ endmacro
 		LDA.b	#$00
 		STA	!SA1_BMAPS
 		RTS
-
-%TestPattern_ID(!TestID_SNES_BwRamProtectMirror_006000)	;-----
-%TestPattern_SA1()
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA.b	#$00
-		STA	!SA1_SBWE
-		LDA.b	#$00
-		STA	!SA1_BMAP
-
-		%SetSa1Databus(!TestMirroringUpdate)
-
-		%SendSA1Message(!Message_TestReady, !TestID)
-		%SendSA1Message(!Message_TestSnesExecute, $00)
-
-		%TestReturn_SA1()
-
-%TestPattern_SNES()
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA.b	#$00
-		STA	!SA1_SBWE
-		LDA.b	#$00
-		STA	!SA1_BWPA
-		LDA.b	#$00
-		STA	!SA1_BMAPS
-
-		CLV					;\  Enable: OFF, Area: $01
-		LDA.b	#$01				;/
-		JSR	WriteTestBwRamSnesExpected
-
-		SEP	#$70
-		; .shortm, .shortx, SEV
-		%TestMemory($006000, l)
-		BEQ	+
-		CLV
-+		%TestMemory($3F60FF, l)
-		BEQ	+
-		CLV
-+		LDA.b	#$00
-		BVS	.Write
-.Disable	SEP	#$40
-		%TestMemory($006100, l)
-		BEQ	+
-		CLV
-+		%TestMemory($3F61FF, l)
-		BEQ	+
-		CLV
-+		LDA.b	#$FF
-		BVC	.Write
-.Area1		CLV
-		LDA.b	#$01
-.Write		JSR	WriteTestBwRamSnesActual
-
-		JMP	TestResultCheck
-
-%TestPattern_ID(!TestID_SNES_BwRamProtectMirror_806000)	;-----
-%TestPattern_SA1()
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA.b	#$00
-		STA	!SA1_SBWE
-		LDA.b	#$00
-		STA	!SA1_BMAP
-
-		%SetSa1Databus(!TestMirroringUpdate)
-
-		%SendSA1Message(!Message_TestReady, !TestID)
-		%SendSA1Message(!Message_TestSnesExecute, $00)
-
-		%TestReturn_SA1()
-
-%TestPattern_SNES()
-		SEP	#$30
-		; .shortm, .shortx
-
-		LDA.b	#$00
-		STA	!SA1_SBWE
-		LDA.b	#$00
-		STA	!SA1_BWPA
-		LDA.b	#$00
-		STA	!SA1_BMAPS
-
-		CLV					;\  Enable: OFF, Area: $01
-		LDA.b	#$01				;/
-		JSR	WriteTestBwRamSnesExpected
-
-		SEP	#$70
-		; .shortm, .shortx, SEV
-		%TestMemory($806000, l)
-		BEQ	+
-		CLV
-+		%TestMemory($BF60FF, l)
-		BEQ	+
-		CLV
-+		LDA.b	#$00
-		BVS	.Write
-.Disable	SEP	#$40
-		%TestMemory($806100, l)
-		BEQ	+
-		CLV
-+		%TestMemory($BF61FF, l)
-		BEQ	+
-		CLV
-+		LDA.b	#$FF
-		BVC	.Write
-.Area1		CLV
-		LDA.b	#$01
-.Write		JSR	WriteTestBwRamSnesActual
-
-		JMP	TestResultCheck
 
 macro	TestBwRamProtectMapping(id, target, setWEN, setBMAP, sa1Expected, snesExpected, addr)
 %TestPattern_ID(<id>)	;-----
@@ -2972,6 +2981,7 @@ macro	TestBwRamProtectMapping(id, target, setWEN, setBMAP, sa1Expected, snesExpe
 		%SendSA1MessageAcc(!Message_TestSnesExecute)
 
 	if <target> == 0
+		; Target: SA-1
 		if <sa1Expected> == 0
 			LDA.b	#$00
 		else
@@ -2988,6 +2998,7 @@ macro	TestBwRamProtectMapping(id, target, setWEN, setBMAP, sa1Expected, snesExpe
 		%SendSA1MessageAcc(!Message_TestSa1BwRamActualE)
 		%SendSA1Message(!Message_TestCheck, $00)
 	else
+		; Target: SNES
 		; NOP
 	endif
 
@@ -3010,8 +3021,10 @@ macro	TestBwRamProtectMapping(id, target, setWEN, setBMAP, sa1Expected, snesExpe
 		STA	!SA1_BMAPS
 
 	if <target> == 0
+		; Target: SA-1
 		RTS
 	else
+		; Target: SNES
 		LDA.b	#$00
 		if <snesExpected> == 0
 			CLV
@@ -3034,14 +3047,127 @@ macro	TestBwRamProtectMapping(id, target, setWEN, setBMAP, sa1Expected, snesExpe
 	endif
 endmacro
 
-%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_Enable,  0, 1, $00, 1, 1, $006000)
-%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_M00P,    0, 0, $00, 0, 0, $0060FF)
-%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_M00E,    0, 0, $00, 1, 1, $006100)
-%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_M01,     0, 0, $01, 1, 1, $006100)
 %TestBwRamProtectMapping(!TestID_SNES_BwRamProtectMapping_Enable, 1, 1, $00, 1, 1, $006000)
 %TestBwRamProtectMapping(!TestID_SNES_BwRamProtectMapping_M00P,   1, 0, $00, 0, 0, $0060FF)
 %TestBwRamProtectMapping(!TestID_SNES_BwRamProtectMapping_M00E,   1, 0, $00, 1, 1, $006100)
 %TestBwRamProtectMapping(!TestID_SNES_BwRamProtectMapping_M01,    1, 0, $01, 1, 1, $006100)
+%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_Enable,  0, 1, $00, 1, 1, $006000)
+%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_M00P,    0, 0, $00, 0, 0, $0060FF)
+%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_M00E,    0, 0, $00, 1, 1, $006100)
+%TestBwRamProtectMapping(!TestID_SA1_BwRamProtectMapping_M01,     0, 0, $01, 1, 1, $006100)
+
+;--- Write order
+%TestPattern_ID(!TestID_SNES_IRamProtectionOrder_CS)	;----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#%00110101
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, %01010011)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		JMP	TestSnesIRam
+
+%TestPattern_ID(!TestID_SNES_IRamProtectionOrder_SC)	;----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, %10101100)
+
+		LDA.b	#%11001010
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestSnesExecute, $00)
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+		; TestSnesIRam
+		LDA	!Sa1MessageByte
+		BEQ	.Call2
+.Call1		;LDA	!Sa1MessageByte
+		STA	!SA1_SIWP
+		JSR	WriteTestIRamSnesExpected
+		RTS
+
+.Call2		JSR	TestIRam
+		JSR	WriteTestIRamSnesActual
+		JMP	TestResultCheck
+
+%TestPattern_ID(!TestID_SA1_IRamProtectionOrder_CS)	;-----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#%00110011
+		STA	!SA1_CIWP
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSa1IRamExpected, %00110011)
+		%SendSA1Message(!Message_TestSnesExecute, %01010101)
+		%SoftwareJSR(TestIRam)
+		%SendSA1MessageAcc(!Message_TestSa1IRamActual)
+		%SendSA1Message(!Message_TestCheck, $00)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		JMP	SetSnesIRam
+
+%TestPattern_ID(!TestID_SA1_IRamProtectionOrder_SC)	;-----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSa1IRamExpected, %11001100)
+		%SendSA1Message(!Message_TestSnesExecute, %101010)
+
+		LDA.b	#%11001100
+		STA	!SA1_CIWP
+
+		%SoftwareJSR(TestIRam)
+		%SendSA1MessageAcc(!Message_TestSa1IRamActual)
+		%SendSA1Message(!Message_TestCheck, $00)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		JMP	SetSnesIRam
+
+macro	TestBwRamProtectOrder(id, target, oCEn, oSEn, oSAr, setBWPA)
+%TestPattern_ID(<id>)	;-----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+	if <target> == 0
+		; Target: SA-1
+	else
+		; Target: SNES
+	endif
+
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+	if <target> == 0
+		; Target: SA-1
+	else
+		; Target: SNES
+	endif
+
+endmacro
+
 
 ;%TestPattern_ID()	;-----
 ;%TestPattern_SA1()
