@@ -217,11 +217,11 @@ includeonce
 
 !TestID_SA1_BwRamProtectMapping_Enable	= 167	;  SA-1   BW-RAM  $8000/$80--  $006000	BMAP  = $00, ADDR -> $400000
 !TestID_SA1_BwRamProtectMapping_M00P	= 168	;  SA-1   BW-RAM  $0000/$00--  $006000	BMAP  = $00, ADDR -> $400000 * protected
-!TestID_SA1_BwRamProtectMapping_M00	= 169	;  SA-1   BW-RAM  $0000/$00--  $006100	BMAP  = $00, ADDR -> $400100
+!TestID_SA1_BwRamProtectMapping_M00E	= 169	;  SA-1   BW-RAM  $0000/$00--  $006100	BMAP  = $00, ADDR -> $400100
 !TestID_SA1_BwRamProtectMapping_M01	= 170	;  SA-1   BW-RAM  $0000/$00--  $006000	BMAP  = $01, ADDR -> $400000
 !TestID_SNES_BwRamProtectMapping_Enable	= 171	;  SNES   BW-RAM  $8000/$80--  $006000	BMAPS = $00, ADDR -> $400000
 !TestID_SNES_BwRamProtectMapping_M00P	= 172	;  SNES   BW-RAM  $0000/$00--  $006000	BMAPS = $00, ADDR -> $400000 * protected
-!TestID_SNES_BwRamProtectMapping_M00	= 173	;  SNES   BW-RAM  $0000/$00--  $006100	BMAPS = $00, ADDR -> $400100
+!TestID_SNES_BwRamProtectMapping_M00E	= 173	;  SNES   BW-RAM  $0000/$00--  $006100	BMAPS = $00, ADDR -> $400100
 !TestID_SNES_BwRamProtectMapping_M01	= 174	;  SNES   BW-RAM  $0000/$00--  $006000	BMAPS = $01, ADDR -> $400000
 
 ; Write order					; TARGET  MEMORY   SNES/SA-1   ADDRESS	DESCRIPTION
@@ -265,7 +265,7 @@ includeonce
 
 ;--------------------------------------------------
 
-!TestID_Count				= 206
+!TestID_Count				= 205
 
 ;--------------------------------------------------
 
