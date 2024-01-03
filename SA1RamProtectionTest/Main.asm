@@ -140,15 +140,13 @@ else
 endif
 
 	;	 0123456789ABCDEF
-	db	"SA-1 RAM PROTECTION TEST", $0D, $0A
+	db	"SA-1 RAM PROTECTION TEST"
+	%NewLine(CRLF, 1)
 	db	"ver "
 	%DataAsciiNumber(!VersionMajor, 1, None)
 	db	"."
 	%DataAsciiNumber(!VersionMinor, 2, Zero)
-	db	$0D, $0A
-	db	"absindx"
-	db	$0D, $0A
-	db	$0D, $0A
+	%NewLine(CRLF, 2)
 
 if !HiROM
 	org	$008000	; HiROM

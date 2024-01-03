@@ -122,6 +122,50 @@ macro	DataAsciiNumber(value, digit, padtype)
 
 endmacro
 
+; Usage:
+;   %CRLF(1, 1)
+;   ; -> db $0D, $0A		; <CR>, <LF>
+;   %CRLF(2, 2)
+;   ; -> db $0D, $0A, $0D, $0A	; <CR>, <LF>, <CR>, <LF>
+;   %CRLF(2, 1)
+;   ; -> db $0D, $0A, $0D	; <CR>, <LF>, <CR>
+;   %CRLF(2, 0)
+;   ; -> db $0D, $0D		; <CR>, <CR>
+macro	CRLF(crCount, lfCount)
+	if	<crCount> > 0
+		db	$0D
+	endif
+	if	<lfCount> > 0
+		db	$0A
+	endif
+	if	<crCount> > 0 || <lfCount> > 0
+		%CRLF((<crCount>-1), (<lfCount>-1))
+	endif
+
+endmacro
+
+; Usage:
+;   %NewLine(CRLF, 1)
+;   ; -> db $0D, $0A		; <CR>, <LF>
+;   %NewLine(CRLF, 2)
+;   ; -> db $0D, $0A, $0D, $0A	; <CR>, <LF>, <CR>, <LF>
+;   %NewLine(CR, 2)
+;   ; -> db $0D, $0D		; <CR>, <CR>
+;   %NewLine(LF, 2)
+;   ; -> db $0A, $0A		; <LF>, <LF>
+!NewLine_CRLF	= 0
+!NewLine_CR	= 1
+!NewLine_LF	= 2
+macro	NewLine(type, count)
+	if     !NewLine_<type> == !NewLine_CR
+		%CRLF(<count>, 0)
+	elseif !NewLine_<type> == !NewLine_LF
+		%CRLF(0, <count>)
+	else   ;!NewLine_<type> == !NewLine_CRLF
+		%CRLF(<count>, <count>)
+	endif
+endmacro
+
 ;--------------------------------------------------
 
 function ScreenVramAddress(base, w, x, y)	= (base+((w*y)+x))
