@@ -268,19 +268,19 @@ includeonce
 !TestID_SNES_BwRamProtectReset_ChangeA	= 209	;  SNES   BW-RAM  $0002/$00--  $400000	change protection at SA-1 Reset (CCNT = $20)
 !TestID_SNES_BwRamProtectReset_ChangeE	= 210	;  SNES   BW-RAM  $8000/$00--  $400000	change protection at SA-1 Reset (CCNT = $20)
 
-!TestID_SNES_BwRamProtectStop_CeSd	= 211	;  SNES   BW-RAM  $0000/$80--  $400000	change protection at SA-1 STP (reboot set)	; C=Enable, S=Disable
-!TestID_SNES_BwRamProtectStop_CeSe	= 212	;  SNES   BW-RAM  $8000/$80--  $400000	change protection at SA-1 STP			; C=Enable, S=Enable
-!TestID_SNES_BwRamProtectReady_CeSd	= 213	;  SNES   BW-RAM  $0000/$80--  $400000	change protection at SA-1 Ready (CCNT = $40)
+!TestID_SNES_BwRamProtectStop_CeSd	= 211	;  SNES   BW-RAM  $0000/$80--  $400000	change protection at SA-1 STP (reboot set)   * reset? SEWN = 0	; C=Enable, S=Disable
+!TestID_SNES_BwRamProtectStop_CeSe	= 212	;  SNES   BW-RAM  $8000/$80--  $400000	change protection at SA-1 STP					; C=Enable, S=Enable
+!TestID_SNES_BwRamProtectReady_CeSd	= 213	;  SNES   BW-RAM  $0000/$80--  $400000	change protection at SA-1 Ready (CCNT = $40) * reset? SEWN = 0
 !TestID_SNES_BwRamProtectReady_CeSe	= 214	;  SNES   BW-RAM  $8000/$80--  $400000	change protection at SA-1 Ready (CCNT = $40)
-!TestID_SNES_BwRamProtectReset_CeSd	= 215	;  SNES   BW-RAM  $0000/$80--  $400000	change protection at SA-1 Reset (CCNT = $20)
+!TestID_SNES_BwRamProtectReset_CeSd	= 215	;  SNES   BW-RAM  $0000/$80--  $400000	change protection at SA-1 Reset (CCNT = $20) * reset? SEWN = 0
 !TestID_SNES_BwRamProtectReset_CeSe	= 216	;  SNES   BW-RAM  $8000/$80--  $400000	change protection at SA-1 Reset (CCNT = $20)
 
 ; SA-1 Reboot					; TARGET  MEMORY   SNES/SA-1   ADDRESS	DESCRIPTION
-!TestID_SNES_IRamProtection_Reboot	= 217	;  SNES   I-RAM     $AA/$33    $003000	(set protection at before reboot) Reboot protection (SNES)
-!TestID_SNES_BwRamProtection_Reboot	= 218	;  SNES   BW-RAM  $0002/$80--  $400000	(set protection at before reboot) Reboot protection (SNES)
-!TestID_SA1_Reboot_SPL			= 219	;  SA-1                               	(set SP at before reboot)         Reboot stack pointer
-!TestID_SA1_Reboot_SPH			= 220	;  SA-1                               	(set SP at before reboot)         Reboot stack pointer
-!TestID_SA1_IRamProtection_Reboot	= 221	;  SA-1   I-RAM     $AA/$33    $003000	(set protection at before reboot) Reboot protection (SA-1)
+!TestID_SA1_Reboot_SPL			= 217	;  SA-1                               	(set SP at before reboot)         Reboot stack pointer
+!TestID_SA1_Reboot_SPH			= 218	;  SA-1                               	(set SP at before reboot)         Reboot stack pointer
+!TestID_SNES_IRamProtection_Reboot	= 219	;  SNES   I-RAM     $AA/$33    $003000	(set protection at before reboot) Reboot protection (SNES)
+!TestID_SNES_BwRamProtection_Reboot	= 220	;  SNES   BW-RAM  $8000/$80--  $400000	(set protection at before reboot) Reboot protection (SNES)
+!TestID_SA1_IRamProtection_Reboot	= 221	;  SA-1   I-RAM     $AA/$33    $003000	(set protection at before reboot) Reboot protection (SA-1) * reset? CIWP = $00
 !TestID_SA1_BwRamProtection_Reboot	= 222	;  SA-1   BW-RAM  $0002/$80--  $400000	(set protection at before reboot) Reboot protection (SA-1)
 
 ;--------------------------------------------------

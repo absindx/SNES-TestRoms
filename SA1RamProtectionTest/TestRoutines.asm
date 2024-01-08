@@ -25,7 +25,6 @@ incsrc	"MessageID.asm"
 ;--------------------------------------------------
 
 !Sa1StartTestID		:= !TestID_SA1_IRamProtection_Boot
-!Sa1StartTestID		:= !TestID_SNES_IRamProtectStop
 
 !TestMirroringValue	= $AA
 !TestMirroringUpdate	= $BB
@@ -312,12 +311,12 @@ endmacro
 		%TestDefine(TestID_SNES_BwRamProtectReset_CeSd)
 		%TestDefine(TestID_SNES_BwRamProtectReset_CeSe)
 		; SA-1 Reboot
-		;%TestDefine(TestID_SNES_IRamProtection_Reboot)
-		;%TestDefine(TestID_SNES_BwRamProtection_Reboot)
-		;%TestDefine(TestID_SA1_Reboot_SPL)
-		;%TestDefine(TestID_SA1_Reboot_SPH)
-		;%TestDefine(TestID_SA1_IRamProtection_Reboot)
-		;%TestDefine(TestID_SA1_BwRamProtection_Reboot)
+		%TestDefine(TestID_SA1_Reboot_SPL)
+		%TestDefine(TestID_SA1_Reboot_SPH)
+		%TestDefine(TestID_SNES_IRamProtection_Reboot)
+		%TestDefine(TestID_SNES_BwRamProtection_Reboot)
+		%TestDefine(TestID_SA1_IRamProtection_Reboot)
+		%TestDefine(TestID_SA1_BwRamProtection_Reboot)
 
 ;--------------------------------------------------
 ; Draw result
@@ -367,12 +366,6 @@ UpdateScreen:
 		LDX	!TestSnesStackPointerBootH
 		JSR	DrawHexX
 		LDX	!TestSnesStackPointerBootL
-		JSR	DrawHexX
-
-		%ScreenVramAddress($1A, $09)
-		LDX	!TestSnesStackPointerRebootH
-		JSR	DrawHexX
-		LDX	!TestSnesStackPointerRebootL
 		JSR	DrawHexX
 
 		%ScreenVramAddress($0D, $0A)
@@ -662,7 +655,7 @@ SNESMessage_Boot_SPL:
 		STA	!DisplayTestID
 +
 		LDA	!Sa1MessageByte
-		STA	!TestSa1StackPointerBootL
+		STA.w	!TestSa1StackPointerBootL, Y
 		STA	!TestActuals, X
 		JMP	TestSnesExecute
 
@@ -679,7 +672,7 @@ SNESMessage_Boot_SPH:
 		STA	!DisplayTestID
 +
 		LDA	!Sa1MessageByte
-		STA	!TestSa1StackPointerBootH
+		STA.w	!TestSa1StackPointerBootH, Y
 		STA	!TestActuals, X
 		JMP	TestSnesExecute
 
@@ -801,6 +794,12 @@ GetStackPointeTestID:
 		CMP.b	#!TestID_SA1_Boot_SPH+1		;   !TestID_SA1_Boot_SPL
 		BCS	+
 		LDA.b	#!TestID_SA1_Boot_SPL
+		LDY.b	#$00
+		RTS
++		CMP.b	#!TestID_SA1_Reboot_SPH+1	;   !TestID_SA1_Reboot_SPL
+		BCS	+
+		LDA.b	#!TestID_SA1_Reboot_SPL
+		LDY.b	#$04
 		RTS
 +		;LDA.b	#$FF				;   Invalid
 		RTS
@@ -951,17 +950,21 @@ SA1RESET_Reboot:
 		JML	.SetPBR				;\  PB = $00
 .SetPBR							;/
 		%SoftwareJSR(SA1RESET_Initialize)
+		; .shortm, .longx
+		LDA.b	#!TestID_SA1_Reboot_SPL
+		%SendSA1MessageAcc(!Message_TestReady)
 		REP	#$30
 		; .longm, .longx
 		TXA
 		SEP	#$30
 		; .shortm, .shortx
 		%SendSA1MessageAcc(!Message_Boot_SPL)
+		LDA.b	#!TestID_SA1_Reboot_SPH
+		%SendSA1MessageAcc(!Message_TestReady)
 		XBA
 		%SendSA1MessageAcc(!Message_Boot_SPH)
 
-		; TODO: Implements
-		;JMP	TestPattern_SA1_Reboot
+		JMP	TestPattern_SA1_Reboot
 
 SA1RESET_Initialize:
 		; .longm, .longx
@@ -1814,6 +1817,7 @@ TestBwRamProtectOrder_Snes:
 ;   Y   = TestID
 ;   P.V = SWEN
 TestSnesBwRamProtection_SnesStop:
+		; .shortm, .shortx
 		PHX
 		PHA
 		STA	!SA1_BWPA
@@ -1842,13 +1846,12 @@ TestSnesBwRamProtection_SnesStop:
 
 		;%TestReturn_SNES()
 		TYA
+		CMP.b	#!TestID_SNES_BwRamProtectReset_CeSe
+		BEQ	.CancelNext
 		INC	A
 		STA	!TestingID
 		JMP	TestSnesExecute
-
-
-
-
+.CancelNext	RTS
 
 ;--------------------------------------------------
 
@@ -2165,10 +2168,10 @@ TestHandlerTable:
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectReady_CeSe)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectReset_CeSd)
 		%TestHandlerDefine(!TestID_SNES_BwRamProtectReset_CeSe)
-		%TestHandlerDefine(!TestID_SNES_IRamProtection_Reboot)
-		%TestHandlerDefine(!TestID_SNES_BwRamProtection_Reboot)
 		%TestHandlerDefine(!TestID_SA1_Reboot_SPL)
 		%TestHandlerDefine(!TestID_SA1_Reboot_SPH)
+		%TestHandlerDefine(!TestID_SNES_IRamProtection_Reboot)
+		%TestHandlerDefine(!TestID_SNES_BwRamProtection_Reboot)
 		%TestHandlerDefine(!TestID_SA1_IRamProtection_Reboot)
 		%TestHandlerDefine(!TestID_SA1_BwRamProtection_Reboot)
 		pullpc
@@ -3647,7 +3650,19 @@ macro	TestSnesBwRamProtectionStop(id, setCCNT, setSWEN, setBWPA, expected)
 		LDA.b	#<setBWPA>
 		LDX.b	#<expected>
 		LDY.b	#!TestID
+
+	if <id> != !TestID_SNES_BwRamProtectReset_CeSe
 		JMP	TestSnesBwRamProtection_SnesStop
+	else
+		JSR	TestSnesBwRamProtection_SnesStop
+
+		LDA.b	#%00000000			;\
+		STA	!SA1_CBWE			; | for !TestID_SNES_BwRamProtection_Reboot
+		LDA.b	#%00000010			; |
+		STA	!SA1_BWPA			;/
+
+		%TestReturn_SNES()
+	endif
 endmacro
 
 %TestPattern_ID(!TestID_SNES_IRamProtectStop)	;-----
@@ -3673,6 +3688,11 @@ endmacro
 		CMP.b	#!SNESStatus_TestRunning
 		BNE	-
 
+		; stop SA-1
+		REP.b	#$20
+		; .longm, .shortx
+		LDA.w	#!StopSP_SA1
+		TCS
 		STP
 		%SendSA1Message(!Message_TestSa1IRamActual, $FF)		;   check SA-1 actual stop
 
@@ -3809,6 +3829,11 @@ TestPattern_SA1_ProtectStop:
 		CMP.b	#!SNESStatus_TestRunning
 		BNE	-
 
+		; stop SA-1
+		REP.b	#$20
+		; .longm, .shortx
+		LDA.w	#!StopSP_SA1
+		TCS
 		STP
 		%SendSA1Message(!Message_TestSa1IRamActual, $FF)		;   check SA-1 actual stop
 
@@ -3842,14 +3867,120 @@ TestPattern_SA1_ProtectStop:
 %TestSnesBwRamProtectionStop(!TestID_SNES_BwRamProtectReset_CeSd, %00100000, 0, $00, $00)	; TODO: Reported with SWEN=0
 %TestSnesBwRamProtectionStop(!TestID_SNES_BwRamProtectReset_CeSe, %00100000, 1, $00, $80)
 
-;%TestPattern_ID(!TestID_SNES_BwRamProtectStop_CeSd)	;-----
-;%TestPattern_SA1()
-;		; NOP
-;
-;%TestPattern_SNES()
+;--- SA-1 Reboot
+%TestPattern_ID(!TestID_SA1_Reboot_SPL)	;-----
+%TestPattern_SA1()
+		; NOP
+
+%TestPattern_SNES()
+		SEP	#$10
+		REP	#$20
+		; .longm, .shortx
+
+		LDX	!Sa1MessageType
+		CPX.b	#!Message_Boot_SPL
+		BEQ	.Received
+
+.Reboot		LDA.w	#SA1RESET_Reboot		;\
+		STA	!SA1_CRVL			; | reboot SA-1
+		LDX.b	#%00000000			; |
+		STX	!SA1_CCNT			;/
+		RTS
+
+.Received
+		JMP	TestPattern_Pass
+
+%TestPattern_ID(!TestID_SA1_Reboot_SPH)	;-----
+TestPattern_SA1_Reboot:
+%TestPattern_SA1()
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		JMP	TestPattern_Pass
 
 
+%TestPattern_ID(!TestID_SNES_IRamProtection_Reboot)	;-----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
 
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, $00)
+		%TestReturn_SA1()
 
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#!TestID
+		JSR	TestInitialize
+		LDA.b	#%10101010
+		JSR	WriteTestIRamSnesExpected
+		JSR	TestIRam
+		JSR	WriteTestIRamSnesActual
+
+		JMP	TestResultCheck
+
+%TestPattern_ID(!TestID_SNES_BwRamProtection_Reboot)	;----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSnesExecute, $00)
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDA.b	#!TestID
+		JSR	TestInitialize
+		SEP	#$70
+		; .shortm, .shortx, SEV
+		LDA.b	#$00
+		JSR	WriteTestBwRamSnesExpected
+		JSR	TestBwRam
+		JSR	WriteTestBwRamSnesActual
+
+		JMP	TestResultCheck
+
+%TestPattern_ID(!TestID_SA1_IRamProtection_Reboot)	;----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSa1IRamExpected, %00000000)
+		%SoftwareJSR(TestIRam)
+		%SendSA1MessageAcc(!Message_TestSa1IRamActual)
+		%SendSA1Message(!Message_TestCheck, $00)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		; NOP
+
+%TestPattern_ID(!TestID_SA1_BwRamProtection_Reboot)	;----
+%TestPattern_SA1()
+		SEP	#$30
+		; .shortm, .shortx
+
+		%SendSA1Message(!Message_TestReady, !TestID)
+		%SendSA1Message(!Message_TestSa1BwRamExpectedE, $80)
+		%SendSA1Message(!Message_TestSa1BwRamExpectedA, $00)
+		%SoftwareJSR(TestBwRam)
+		%SendSA1MessageAcc(!Message_TestSa1BwRamActualA)
+		LDA.b	#$00
+		BVC	+
+		ORA.b	#$80
++		%SendSA1MessageAcc(!Message_TestSa1BwRamActualE)
+
+		%SendSA1Message(!Message_TestCheck, $00)
+
+		%TestReturn_SA1()
+
+%TestPattern_SNES()
+		; NOP
 
 

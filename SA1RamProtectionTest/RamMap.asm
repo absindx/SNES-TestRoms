@@ -93,7 +93,7 @@ warnings pull
 %DefineRamNext(TestBwRamSa1Actual,		2)	; $0020
 %DefineRamNext(TestSnesStackPointerBoot,	2)	; $0022
 %DefineRamNext(TestSa1StackPointerBoot,		2)	; $0024
-%DefineRamNext(TestSnesStackPointerReboot,	2)	; $0026
+%DefineRamNext(TestSnesStackPointerReboot,	2)	; $0026 Unused
 %DefineRamNext(TestSa1StackPointerReboot,	2)	; $0028
 
 	org	$0030
@@ -113,7 +113,7 @@ warnings pull
 %DefineRamNext(DisplayBwRamSa1Actual,		2)	; $0040
 ;%DefineRamNext(DisplaySnesStackPointerBoot,	2)	; $0042
 ;%DefineRamNext(DisplaySa1StackPointerBoot,	2)	; $0044
-;%DefineRamNext(DisplaySnesStackPointerReboot,	2)	; $0046
+;%DefineRamNext(DisplaySnesStackPointerReboot,	2)	; $0046 Unused
 ;%DefineRamNext(DisplaySa1StackPointerReboot,	2)	; $0048
 
 

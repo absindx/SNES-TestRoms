@@ -9,7 +9,7 @@
 !RomSize	= 512*1024
 !RamSize	= 128*1024
 !RomType	= 0					; 0=LoROM / 1=HiROM
-!DEBUG		= 1					; Release build with comment out
+;!DEBUG		= 1					; Release build with comment out
 
 !VersionMajor	= 0
 !VersionMinor	= 0
