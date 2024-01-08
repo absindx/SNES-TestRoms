@@ -34,6 +34,11 @@ The meaning of the value of this address is `0=Running, 1=Passed, 255=Failed` .
 
 See [RamMap.asm](RamMap.asm) for other memory usage.  
 
+## Debug builds  
+
+Enabling the `!DEBUG` definition in [Main.asm](Main.asm) enables debugging functionality.  
+Pressing Player 1's A button will ignore the failed test and display the next test result.  
+
 ## Test environment  
 
 * SNES:  

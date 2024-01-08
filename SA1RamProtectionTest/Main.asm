@@ -508,8 +508,8 @@ NativeIRQ:
 		db	$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF	; $D0
 		db	$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF	; $E0
 		db	$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CD,$EA,$EA	; $F0
-		; $00: CMP long * 254
-		; $FC: CMP long : CMP abs : NOP : NOP
+		; $00-$FC:    CF (CMP long) * 253
+		; $FC:        CF CD EA EA (CMP long : CMP abs : NOP : NOP)
 		; save cycle: EA EA (NOP : NOP) -> 42 EA (WDM #imm : NOP)
 
 		REP	#$30
@@ -530,9 +530,9 @@ NativeIRQ:
 		; .shortm, .shortx
 		LDA.b	#%10000000			;\  clear IRQ
 		STA	!SA1_SIC			;/
-		LDA	!SA1_SFR
-		AND.b	#$0F
-		TAX
+		LDA	!SA1_SFR			;\
+		AND.b	#$0F				; | message from SA-1
+		TAX					;/
 		LDA	$00FFEE				;   IRQ vector address(low) -> additional message byte
 		JSR	SNESProcessMessage
 
