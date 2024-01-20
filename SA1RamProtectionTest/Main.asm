@@ -6,13 +6,13 @@
 ; General setting
 ;--------------------------------------------------
 
-!RomSize	= 512*1024
+!RomSize	= 32*1024
 !RamSize	= 128*1024
 !RomType	= 0					; 0=LoROM / 1=HiROM
 ;!DEBUG		= 1					; Release build with comment out
 
 !VersionMajor	= 0
-!VersionMinor	= 0
+!VersionMinor	= 80
 
 ;--------------------------------------------------
 ; ROM setting
@@ -48,6 +48,7 @@ if defined("DEBUG")
 else
 	print	"Build: Release"
 endif
+	print	"EOF Address:  $", hex(!EofAddress)
 
 	check bankcross off
 
@@ -79,7 +80,7 @@ incsrc	"MessageID.asm"
 	padbyte $00
 AdditionalCartridgeInformation:
 	db	"HK"					; $00FFB0 : Maker code
-	db	"05SM"					; $00FFB2 : Game code
+	db	"05SR"					; $00FFB2 : Game code
 	db	0,0,0,0,0,0				; $00FFB6 : Reserved
 	db	$00					; $00FFBC : Expansion flash size
 	db	$00					; $00FFBD : Expansion Ram size

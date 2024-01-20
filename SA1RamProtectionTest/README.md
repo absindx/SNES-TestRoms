@@ -1,6 +1,6 @@
 # SA-1 RAM protection test  
 
-**under development**  
+![real machine](Image/RealMachine.png)  
 
 Testing SA-1 I-RAM Protection and BW-RAM Protection.  
 
@@ -8,9 +8,9 @@ Testing SA-1 I-RAM Protection and BW-RAM Protection.
 
 Uses IRQ from SA-1 to SNES CPU for sending test data.  
 
-* `$220E-$220F SIV`
-* `$2209 SCNT.IVSW`
-* `$00FFEE NativeMode IRQ`
+* `$220E-$220F SIV`  
+* `$2209 SCNT.IVSW`  
+* `$00FFEE NativeMode IRQ`  
 
 ## Notes  
 
@@ -24,8 +24,25 @@ See [MessageID.asm](MessageID.asm) for TEST ID assignment.
   BW-RAM Protection's `BWPA` is a register for the SNES CPU, but it also affects the SA-1 protection area.  
 * TEST ID : 145-162  
   It seems that the unmapped area on the SA-1 side returns the old data bus value. (similar to PPU open bus...?)  
+  (Probably) The initial value is an undefined value for a cold boot, and the previous value for a momentary power off or reset button.  
   Macro `%SetSa1Databus()` sets the bus to any value.  
   Since the details are still unknown, I plan to create another test ROM.  
+
+### TODO  
+
+It may be a bug in the test program or unexplained behavior.  
+
+* Test system  
+  It may randomly get stuck during testing or the test may fail.  
+  Missing the IRQ from SA-1 to SNES CPU?  
+  I don't have any statistics, but it often happened when I turned it off for a few seconds and then started it up.  
+* TEST ID : 211, 213, 215  
+  Even if SA-1 is stopped with CWEN=1, will writing to BW-RAM with SWEN=0 be protected.  
+  Has it been reset at some point?  
+  (From the behavior of TEST ID : 35, 38)  
+* TEST ID : 221  
+  SA-1 I-RAM Protection after reset returns protection status $00.  
+  Has it been reset at some point?  
 
 ## For automated testing  
 
