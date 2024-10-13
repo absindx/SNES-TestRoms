@@ -449,12 +449,15 @@ NativeNMI:
 		PLD					;/
 
 		SEP	#$20
+		; .shortm, .longx
 		LDA	!CPU_RDNMI
 
+		INC	!AliveCounter
+		BEQ	.Halted
 		INC	!FrameCounter
 		JSR	FrameMain
 
-		REP	#$30
+.Exit		REP	#$30
 		; .longm, .longx
 		PLB
 		PLD
@@ -463,6 +466,13 @@ NativeNMI:
 		PLA
 		CLI
 		RTI
+
+.Halted
+		LDA	!TestFinished
+		BNE	.Exit
+		LDA.b	#!TestFinished_Halted
+		STA	!TestFinished
+		BRA	.Exit
 
 ;--------------------------------------------------
 ; Common data

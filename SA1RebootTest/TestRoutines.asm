@@ -20,32 +20,62 @@ incsrc	"RamMap.asm"
 ;--------------------------------------------------
 
 UpdateScreen:
-		;JSR	UpdateScreen_Result
+		JSR	UpdateScreen_Result
+		JSR	UpdateScreen_Reset
 		JSR	UpdateScreen_Registers
 
 		JMP	TransferTilemap_Main
 
 UpdateScreen_Result:
-		LDA	!TestFinished
-		BNE	+
-		LDY.b	#(7*0)-1
-		BRA	.Write
-+		BMI	+
-		LDY.b	#(7*1)-1
-		BRA	.Write
-+		LDY.b	#(7*2)-1
-.Write		LDX.b	#6
+%DefineLocal(index, ScratchMemory+0, 1)
+
+		; .shortm, .shortx
+		LDA	!TestFinished			;\
+		INC	A				; |
+		INC	A				; | (Result + 3) * 8 - (Result + 3) - 1
+		INC	A				; |   Halted  = (-2 + 3) * 8 - (-2 + 3) - 1 = $06
+		STA	.index				; |   Failed  = (-1 + 3) * 8 - (-1 + 3) - 1 = $0D
+		ASL	A				; |   Running = ( 0 + 3) * 8 - ( 0 + 3) - 1 = $14
+		ASL	A				; |   Passed  = ( 1 + 3) * 8 - ( 1 + 3) - 1 = $1B
+		ASL	A				; |
+		SEC					; |
+		SBC	.index				; |
+		DEC	A				;/
+		TAY
+		LDX.b	#6
 .Copy		LDA	.Message_Result, Y
-		STA	ScreenVramAddress(!TilemapBuffer, $20, $0C, $08), X
+		STA	ScreenVramAddress(!TilemapBuffer, $20, $0A, $08), X
 		DEY
 		DEX
 		BPL	.Copy
 		RTS
 
 .Message_Result
-		db	"RUNNING"
-		db	"PASSED", $0
-		db	"FAILED", $0
+		db	"HALTED", $0	; -2
+		db	"FAILED", $0	; -1
+		db	"RUNNING"	; +0
+		db	"PASSED", $0	; +1
+
+UpdateScreen_Reset:
+		; .shortm, .shortx
+		LDA	!BootType			;\
+		ASL	A				; |
+		ASL	A				; | Result * 5 + 4
+		;CLC					; |   Power = 0 * 5 + 4 = $04
+		ADC	!BootType			; |   Reset = 1 * 5 + 4 = $09
+		ADC	#4				;/
+		TAY
+		LDX.b	#4
+.Copy		LDA	.Message_Result, Y
+		STA	ScreenVramAddress(!TilemapBuffer, $20, $18, $08), X
+		DEY
+		DEX
+		BPL	.Copy
+		RTS
+
+.Message_Result
+		db	"POWER"
+		db	"RESET"
 
 		dpbase	!WRAM_WMDATA&$FF00
 UpdateScreen_Registers:
@@ -453,6 +483,7 @@ SA1Message_NOP:
 ;--------------------------------------------------
 
 TestSnesInitialize:
+		JSR	DetectReset
 		;JMP	TestSnesExecute
 
 ;TestSa1Initialize:
@@ -481,6 +512,12 @@ TestSnesExecute:
 
 TestSa1Pattern:
 		; .shortm, .shortx
+
+		LDX	!TestFinished
+		BEQ	.Exec
+		RTS
+.Exec
+
 		JSR	ClearTestMemory
 		;ORA.b	#%00000000			;\  SA-1 CPU clear reset
 		STA	!SA1_CCNT			;/
@@ -496,8 +533,10 @@ TestSa1Pattern:
 		TAY					;/
 		LDX.b	#!TestRegisterTmp-2
 
+		STZ	AliveCounter
 .Wait		LDA	!TestSa1Waiting			;   wait SA-1 response
 		BEQ	.Wait
+		STZ	AliveCounter
 
 		LDA	$00FFEE				;   IRQ vector address(low) -> additional message byte
 		STA	!TestRegisterTmp_AL
@@ -557,20 +596,6 @@ ClearIRam:
 
 		PLP
 		RTS
-
-CheckResult:
-		; .shortm, .shortx
-
-		; TODO: Implements
-
-		;BRA	.Failed
-		INC	!TestFinished
-		BRA	.Finish
-.Failed		DEC	!TestFinished
-.Finish
-
-		RTS
-
 
 macro	PatchTilemapByte(y, value)
 		org	Tilemap_Main+(<y>*$20)+7
@@ -716,5 +741,52 @@ SetCumulativeSum:
 .VdpValue
 		db	$00, $11, $22, $33, $44, $55, $66, $77
 		db	$88, $99, $AA, $BB, $CC, $DD, $EE, $FF
+
+
+DetectReset:
+		SEP	#$30
+		; .shortm, .shortx
+
+		LDX.b	#!ResetSignatureLength-1
+.LoopCheck	LDA	.RomResetSignature, X
+		CMP	!ResetSignature, X
+		BNE	.CheckBreak
+		DEX
+		BPL	.LoopCheck
+		LDA.b	#$01
+		BRA	.CheckEnd
+.CheckBreak	LDA.b	#$00
+.CheckEnd	STA	!BootType
+
+		LDX.b	#!ResetSignatureLength-1
+.LoopCopy	LDA	.RomResetSignature, X
+		STA	!ResetSignature, X
+		DEX
+		BPL	.LoopCopy
+
+		RTS
+
+.RomResetSignature
+		skip	!ResetSignatureLength
+		pushpc
+		org	.RomResetSignature
+		;	 0123456789ABCDEF
+		db	"SA-1 REBOOT TEST"
+		pullpc
+
+CheckResult:
+		; .shortm, .shortx
+
+		; TODO: Implements
+
+		;BRA	.Failed
+
+.Passed		LDA.b	#!TestFinished_Passed
+		STA	!TestFinished
+		RTS
+
+.Failed		LDA.b	#!TestFinished_Failed
+		STA	!TestFinished
+		RTS
 
 

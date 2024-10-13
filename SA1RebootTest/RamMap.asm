@@ -74,8 +74,10 @@ warnings pull
 ;--------------------------------------------------
 
 	org	$0000
-%DefineRamNext(TestFinished,			1)	; $0000 0=Running, 1=Passed, 255=Failed
+%DefineRamNext(TestFinished,			1)	; $0000 0=Running, 1=Passed, 255=Failed, 254=Halted
 %DefineRamNext(TestingType,			1)	; $0001 1=JMP, 2=WAI, 3=STP
+%DefineRamNext(BootType,			1)	; $0002 0=Power, 1=Reset
+%DefineRamNext(AliveCounter,			1)	; $0003
 
 macro DefineRamRegister(name, addr)
 	org	<addr>
@@ -121,9 +123,17 @@ endmacro
 %DefineRamNext(FrameCounter,			1)	; $00E2
 %DefineRamNext(JoypadInput,			2)	; $00E3 High   +1, Low    +0
 %DefineRamNext(JoypadPress,			2)	; $00E5 BYsS udlr, AXLR 0123
+	org	$7E2000
+!ResetSignatureLength	= 16
+%DefineRamNext(ResetSignature,			!ResetSignatureLength)	; $7E2000
 
 %DefineRam(Sa1Stack,				$0100, 256)
 %DefineRam(Sa1StackBottom,			$01FF, 1)
+
+!TestFinished_Running	= $00
+!TestFinished_Passed	= $01
+!TestFinished_Failed	= $FF
+!TestFinished_Halted	= $FE
 
 !Sa1SFlag_N		= %10000000
 !Sa1SFlag_V		= %01000000
@@ -135,7 +145,6 @@ endmacro
 !Sa1TestJmp		= 2
 !Sa1TestWai		= 3
 !Sa1TestStp		= 4
-
 
 !SnesOpenBusValue	= $AA
 !Sa1OpenBusValue1	= $BB

@@ -6,10 +6,15 @@ Tests the registers when SA-1 is reset from the SNES CPU.
 Result judgment is not implemented yet.  
 
 
-## ~~For automated testing~~  
+## For automated testing  
 
-~~The test ends when address `$000000 (TestFinished)` becomes non-zero.~~  
-~~The meaning of the value of this address is `0=Running, 1=Passed, 255=Failed` .~~  
+The test ends when address `$000000 (TestFinished)` becomes non-zero.  
+The meaning of the value of this address is:  
+
+* `$00` = Running  
+* `$01` = Passed  
+* `$FF` = Failed  
+* `$FE` = Halted (No response from SA-1)  
 
 See [RamMap.asm](RamMap.asm) for other memory usage.  
 
