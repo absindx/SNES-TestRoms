@@ -11,9 +11,9 @@ asar 1.81
 !RomSize	= 32*1024
 !RamSize	= 0
 !RomType	= 0					; 0=LoROM / 1=HiROM
-!DEBUG		= 1					; Release build with comment out
+;!DEBUG		= 1					; Release build with comment out
 
-!VersionMajor	= 0
+!VersionMajor	= 1
 !VersionMinor	= 0
 
 ;--------------------------------------------------
@@ -452,8 +452,12 @@ NativeNMI:
 		; .shortm, .longx
 		LDA	!CPU_RDNMI
 
+		LDA	!TestFinished
+		BNE	.SkipAlive
 		INC	!AliveCounter
 		BEQ	.Halted
+.SkipAlive
+
 		INC	!FrameCounter
 		JSR	FrameMain
 

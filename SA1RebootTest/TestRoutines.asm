@@ -420,14 +420,6 @@ SNESMessage_TestFinished:
 ; SA-1 routines
 ;--------------------------------------------------
 
-macro	SetSa1Databus(value)
-		LDA.b	#<value>
-		;STA.l	$400000
-		STA.l	$400006
-		STA.l	$400006
-		LDA.l	$000800	; dummy read
-endmacro
-
 macro	SendSA1Message(messageType, irq)
 		; .shortm
 		LDA.b	#(<irq><<7)+(<messageType>&$0F)
@@ -723,7 +715,6 @@ SetCumulativeSum:
 		LDY.w	#$0001
 		STY	!SA1_MBL
 
-
 		; VDP
 !VdpTarget	= .VdpValue+6
 		LDA.b	#$00				; fixed, 16bit read
@@ -775,11 +766,31 @@ DetectReset:
 		pullpc
 
 CheckResult:
-		; .shortm, .shortx
+		SEP	#$70
+		; .shortm, .shortx, SEV
 
-		; TODO: Implements
+		LDA	!BootType						;\
+		BNE	.BootReset						; | RST
+.BootPower	LDX.b	#ExpectedRegisters_Power-ExpectedRegisters_Start	; |
+		BRA	.BootActual						; |
+.BootReset	LDX.b	#ExpectedRegisters_Reset-ExpectedRegisters_Start	; |
+.BootActual	LDY.b	#!TestRegisterRst-!TestRegisterTmp			; |
+		JSR	CompareRegisterResult					;/
 
-		;BRA	.Failed
+		LDX.b	#ExpectedRegisters_Reboot-ExpectedRegisters_Start	;\
+		LDY.b	#!TestRegisterJmp-!TestRegisterTmp			; | JMP
+		JSR	CompareRegisterResult					;/
+
+		LDX.b	#ExpectedRegisters_Reboot-ExpectedRegisters_Start	;\
+		LDY.b	#!TestRegisterWai-!TestRegisterTmp			; | WAI
+		JSR	CompareRegisterResult					;/
+
+		LDX.b	#ExpectedRegisters_Reboot-ExpectedRegisters_Start	;\
+		LDY.b	#!TestRegisterStp-!TestRegisterTmp			; | STP
+		JSR	CompareRegisterResult					;/
+
+
+		BVC	.Failed
 
 .Passed		LDA.b	#!TestFinished_Passed
 		STA	!TestFinished
@@ -788,5 +799,74 @@ CheckResult:
 .Failed		LDA.b	#!TestFinished_Failed
 		STA	!TestFinished
 		RTS
+
+; Argument:
+;   P = shortm, shortx
+;   X = expected registers (ROM), ExpectedRegisters_Start offset
+;   Y = actual registers (RAM), !TestRegisterTmp offset
+; Effect:
+;   X = +32
+;   Y = +32
+;   P.V = check result (0=failed, 1=passed)
+CompareRegisterResult:
+!ExpectedRegistersLength	= $20
+%DefineLocal(counter, ScratchMemory+0, 1)
+
+		LDA.b	#!ExpectedRegistersLength-1
+		STA	.counter
+
+.Loop		LDA	!TestRegisterTmp, Y
+		EOR	ExpectedRegisters_Start, X
+		AND	ExpectedRegisters_Start+!ExpectedRegistersLength, X
+		BEQ	.Equal
+.NotEqual	CLV
+.Equal		INX
+		INY
+		DEC	.counter
+		BPL	.Loop
+
+		RTS
+
+
+	fillbyte	$00
+macro	ExpectedRegisters(a, x, y, s, p, d, k, b, mr1, mr2, mr3, mr4, mr5, of, vdp)
+	dw	<a>	; +$00
+	dw	<x>	; +$02
+	dw	<y>	; +$04
+	dw	<s>	; +$06
+	dw	<p>	; +$08 +0=P, +1=E
+	dw	<d>	; +$0A
+	db	<k>	; +$0C
+	db	<b>	; +$0D
+	fill	align 16
+	db	<mr1>	; +$10
+	db	<mr2>	; +$11
+	db	<mr3>	; +$12
+	db	<mr4>	; +$13
+	db	<mr5>	; +$14
+	db	<of>	; +$15
+	dw	<vdp>	; +$16
+	fill	align 16
+endmacro
+
+; NOTE: No strict checking.
+;       This is because there are registers whose values are indeterminate for electrical reasons.
+
+	skip align !ExpectedRegistersLength
+ExpectedRegisters_Start:
+ExpectedRegisters_Power:	; RST(Power)
+	;                  A,     X,     Y,     S,     P,     D,     K,   B,   MR1, MR2, MR3, MR4, MR5, OF,  VDP
+	%ExpectedRegisters($0000, $0000, $0000, $01FD, $0134, $0000, $00, $00, $FF, $FF, $00, $80, $00, $00, $0000)	; values
+	%ExpectedRegisters($FFFF, $FFFF, $FFFF, $FF00, $01FF, $FFFF, $FF, $FF, $00, $00, $00, $00, $00, $00, $0000)	; masks
+
+ExpectedRegisters_Reset:	; RST(Reset)
+	;                  A,     X,     Y,     S,     P,     D,     K,   B,   MR1, MR2, MR3, MR4, MR5, OF,  VDP
+	%ExpectedRegisters($AABB, $00DD, $00FF, $0134, $01F7, $0000, $00, $00, $00, $00, $00, $00, $00, $00, $7766)	; values
+	%ExpectedRegisters($FFFF, $FFFF, $FFFF, $FFF0, $01FF, $FFFF, $FF, $FF, $00, $00, $00, $00, $00, $00, $FFFF)	; masks
+
+ExpectedRegisters_Reboot:	; JMP, WAI, STP
+	;                  A,     X,     Y,     S,     P,     D,     K,   B,   MR1, MR2, MR3, MR4, MR5, OF,  VDP
+	%ExpectedRegisters($AABB, $00DD, $00FF, $0134, $01F7, $0000, $00, $00, $11, $22, $33, $44, $55, $00, $7766)	; values
+	%ExpectedRegisters($FFFF, $FFFF, $FFFF, $FFF0, $01FF, $FFFF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FFFF)	; masks
 
 
