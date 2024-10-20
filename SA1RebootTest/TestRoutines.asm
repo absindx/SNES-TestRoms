@@ -861,12 +861,12 @@ ExpectedRegisters_Power:	; RST(Power)
 
 ExpectedRegisters_Reset:	; RST(Reset)
 	;                  A,     X,     Y,     S,     P,     D,     K,   B,   MR1, MR2, MR3, MR4, MR5, OF,  VDP
-	%ExpectedRegisters($AABB, $00DD, $00FF, $0134, $01F7, $0000, $00, $00, $00, $00, $00, $00, $00, $00, $7766)	; values
+	%ExpectedRegisters($AABB, $00DD, $00FF, $0131, $01F7, $0000, $00, $00, $00, $00, $00, $00, $00, $00, $7766)	; values
 	%ExpectedRegisters($FFFF, $FFFF, $FFFF, $FFF0, $01FF, $FFFF, $FF, $FF, $00, $00, $00, $00, $00, $00, $FFFF)	; masks
 
 ExpectedRegisters_Reboot:	; JMP, WAI, STP
 	;                  A,     X,     Y,     S,     P,     D,     K,   B,   MR1, MR2, MR3, MR4, MR5, OF,  VDP
-	%ExpectedRegisters($AABB, $00DD, $00FF, $0134, $01F7, $0000, $00, $00, $11, $22, $33, $44, $55, $00, $7766)	; values
+	%ExpectedRegisters($AABB, $00DD, $00FF, $0131, $01F7, $0000, $00, $00, $11, $22, $33, $44, $55, $00, $7766)	; values
 	%ExpectedRegisters($FFFF, $FFFF, $FFFF, $FFF0, $01FF, $FFFF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FFFF)	; masks
 
 
