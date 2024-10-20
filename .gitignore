@@ -1,6 +1,9 @@
 Thumbs.db
+.DS_Store
+
 *.exe
 *.dll
+
 *.old
 *.bak
 *.cache
@@ -11,6 +14,9 @@ Thumbs.db
 *.smc
 *.srm
 *.sym
+*.ram
+*.iram
+*.cheats.bml
 *.zip
 *.lnk
 *.edg
