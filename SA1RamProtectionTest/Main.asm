@@ -7,12 +7,16 @@
 ;--------------------------------------------------
 
 !RomSize	= 32*1024
+if defined("NOSRAM")
+!RamSize	= 0*1024
+else
 !RamSize	= 128*1024
+endif
 !RomType	= 0					; 0=LoROM / 1=HiROM
 ;!DEBUG		= 1					; Release build with comment out
 
 !VersionMajor	= 0
-!VersionMinor	= 80
+!VersionMinor	= 81
 
 ;--------------------------------------------------
 ; ROM setting
@@ -94,7 +98,11 @@ CartridgeInformation:
 	db	"SA-1 RAM PROTECT TEST"			; $00FFC0 : Game title
 	pad $00FFD5
 	db	$23|!RomType				; $00FFD5 : Map mode (Slow 2.68 MHz)
+	if !RamSize > 0
 	db	$35					; $00FFD6 : Cartridge type (ROM + RAM + Battery + SA-1)
+	else
+	db	$33					; $00FFD6 : Cartridge type (ROM + SA-1)
+	endif
 	db	log2(!RomSize/1024)			; $00FFD7 : Rom size
 	db	log2(!RamSize/1024)			; $00FFD8 : Ram size
 	db	$00					; $00FFD9 : Destination code (Japan)
@@ -509,8 +517,8 @@ NativeIRQ:
 		db	$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF	; $D0
 		db	$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF	; $E0
 		db	$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CF,$CD,$EA,$EA	; $F0
-		; $00-$FC:    CF (CMP long) * 253
-		; $FC:        CF CD EA EA (CMP long : CMP abs : NOP : NOP)
+		; $00-$FB:    CF (CMP long) * 252
+		; $FC-$FF:    CF CD EA EA (CMP long : CMP abs : NOP : NOP)
 		; save cycle: EA EA (NOP : NOP) -> 42 EA (WDM #imm : NOP)
 
 		REP	#$30

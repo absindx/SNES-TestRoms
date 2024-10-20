@@ -62,7 +62,9 @@ Pressing Player 1's A button will ignore the failed test and display the next te
   * Super Famicom  
   * Board: `SNSRGB01`  
 * SA-1 cartridge:  
-  * Board: `SHVC-1L5B-20` [(A4WJ expanded to 1MBit of SRAM)](https://absindx.github.io/ZpIndIndY/Articles/SnesSA1Cartridge/)  
+  * Board:
+    * `SHVC-1L5B-20` [(A4WJ expanded to 1MBit of SRAM)](https://absindx.github.io/ZpIndIndY/Articles/SnesSA1Cartridge/)  
+    * `SHVC-1L5B-20` (A4WJ no SRAM expansion)  
   * Chip: `RF5A123 / 6KD 80`  
 
 
