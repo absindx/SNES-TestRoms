@@ -111,7 +111,7 @@ DrawMemoryValue:
 		LDA	!TestSnesRegister+1, Y
 		CMP	!TestSnesRegister+0, Y
 		BEQ	.DrawValue
-.CheckOpenbus	CMP.b	#!OpenBusValue
+.CheckOpenbus	CMP.b	#!SnesOpenBusValue
 		BEQ	.DrawOpenbus
 
 		LDA	!TestSnesRegister+0, Y
@@ -220,6 +220,14 @@ SNESMessage_TestFinished:
 ;--------------------------------------------------
 ; SA-1 routines
 ;--------------------------------------------------
+
+macro	SetSa1Databus(value)
+		LDA.b	#<value>
+		;STA.l	$400000
+		STA.l	$400006
+		STA.l	$400006
+		LDA.l	$000800	; dummy read
+endmacro
 
 macro	SendSA1Message(messageType, irq)
 		; .shortm
@@ -353,6 +361,7 @@ TestReadRegisters:
 ;   Y = +2
 TestReadRegister:
 		; .shortm, .longx
+		%SetSa1Databus(!Sa1OpenBusValue1)
 
 		PHX
 		LDA	!TestAddress, X
@@ -362,13 +371,14 @@ TestReadRegister:
 		REP	#$31
 		; .longm, .longx, CLC
 		TXA
-		ADC.w	#!TestAddress-!OpenBusValue
+		ADC.w	#!TestAddress-!SnesOpenBusValue
 		TAX
 
 		SEP	#$20
 		; .shortm, .longx
 
-		LDA.b	!OpenBusValue, X
+		%SetSa1Databus(!Sa1OpenBusValue2)
+		LDA.b	!SnesOpenBusValue, X
 		STA.w	$00, Y
 		INY
 

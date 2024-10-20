@@ -134,7 +134,9 @@ warnings pull
 
 ;!TestAddress		= $2300
 !TestAddress		= $2300
-!OpenBusValue		= $AA
+!SnesOpenBusValue	= $AA
+!Sa1OpenBusValue1	= $BB
+!Sa1OpenBusValue2	= $CC
 
 
 

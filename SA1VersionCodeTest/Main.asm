@@ -6,7 +6,7 @@
 ; General setting
 ;--------------------------------------------------
 
-!RomSize	= 512*1024
+!RomSize	= 32*1024
 !RamSize	= 0
 !RomType	= 0					; 0=LoROM / 1=HiROM
 !DEBUG		= 1					; Release build with comment out
@@ -48,6 +48,7 @@ if defined("DEBUG")
 else
 	print	"Build: Release"
 endif
+	print	"EOF Address:  $", hex(!EofAddress)
 
 	check bankcross off
 
@@ -139,13 +140,13 @@ else
 endif
 
 	;	 0123456789ABCDEF
-	db	"SA-1 VERSION CODE TEST", $0D, $0A
+	db	"SA-1 VERSION CODE TEST"
+	%NewLine(CRLF, 1)
 	db	"ver "
 	%DataAsciiNumber(!VersionMajor, 1, None)
 	db	"."
 	%DataAsciiNumber(!VersionMinor, 2, Zero)
-	db	$0D, $0A
-	db	$0D, $0A
+	%NewLine(CRLF, 2)
 
 if !HiROM
 	org	$008000	; HiROM
