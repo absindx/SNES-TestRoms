@@ -2,6 +2,14 @@
 
 Tests the registers when SA-1 is reset from the SNES CPU.  
 
+## Required  
+
+Uses IRQ vector from SA-1 to SNES CPU for sending test data.  
+No interrupts are generated.  
+
+* `$220E-$220F SIV`  
+* `$2209 SCNT.IVSW`  
+
 ## For automated testing  
 
 The test ends when address `$000000 (TestFinished)` becomes non-zero.  
@@ -11,6 +19,8 @@ The meaning of the value of this address is:
 * `$01` = Passed  
 * `$FF` = Failed  
 * `$FE` = Halted (No response from SA-1)  
+
+The screen text is at address `$001000 (TilemapBuffer)` .
 
 See [RamMap.asm](RamMap.asm) for other memory usage.  
 
