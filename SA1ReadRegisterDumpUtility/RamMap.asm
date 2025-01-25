@@ -59,6 +59,9 @@ pushpc
 %DefineRam(VramBuffer,				$7F0000, $2000)
 %DefineRam(PaletteBuffer,			$7F0000, 512)	; Temporary buffer
 
+%DefineRam(TilemapBuffer,			$1000, $3C0)
+!TilemapBufferWram	= $7E0000+TilemapBuffer
+
 warnings push
 warnings disable W1009
 %DefineRam(SA1_IRam,				$000000, $0800)

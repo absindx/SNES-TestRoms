@@ -1,11 +1,11 @@
-# SA-1 version code test  
+# SA-1 read register dump utility  
 
-**under development**  
+**It is a utility ROM that does not judge.**  
 
 ## For automated testing  
 
 The test ends when address `$000000 (TestFinished)` becomes non-zero.  
-The meaning of the value of this address is `0=Running, 1=Passed, 255=Failed` .  
+The meaning of the value of this address is `0=Running, 1=Finished` .  
 
 See [RamMap.asm](RamMap.asm) for other memory usage.  
 

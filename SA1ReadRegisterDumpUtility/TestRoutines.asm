@@ -19,34 +19,33 @@ incsrc	"RamMap.asm"
 ; Draw result
 ;--------------------------------------------------
 
-macro ScreenVramAddress(x, y)
-		LDX.b	#(ScreenVramAddress($0000, 32, <x>, <y>))
-		STX	!PPU_VMADDL
-		LDX.b	#(ScreenVramAddress($0000, 32, <x>, <y>)>>8)
-		STX	!PPU_VMADDH
-endmacro
+function ShiftByte(value, i)		= ((value)>>(i*8))&$00FF
+function ShiftWord(value, i)		= ((value)>>(i*8))&$FFFF
+function ScreenWramAddress(x, y)	= ScreenVramAddress(!TilemapBufferWram+!TilemapOffset, 32, x, y)
 
 UpdateScreen:
-		SEP	#$30
-		; .shortm, .shortx
+		; Read registers
+		JSR	WriteRegisters
 
-		LDA.b	#%00000000			;   Increment at $2118, No remap, Increment 1 word
-		STA	!PPU_VMAINC
+		; Update screen
+		JMP	TransferTilemap_Main
 
-		; Registers
-		;%ScreenVramAddress($13, $0B+Y)
+WriteRegisters:
 		LDY.b	#$00
 .LoopRegistor	REP	#$20
 		; .longm, .shortx
-		TYA
-		;ASL
-		ASL
-		ASL
-		ASL
-		ASL
-		ADC.w	#($08*32)+$13
-		STA	!PPU_VMADDL
+		TYA						;\
+		;ASL						; |
+		ASL						; | (Y * 32 / 2) + screen base
+		ASL						; |
+		ASL						; |
+		ASL						; |
+		STZ	!WRAM_WMADDM				; |
+		ADC.w	#ShiftWord(ScreenWramAddress(19, 8), 0)	;/
+		STA	!WRAM_WMADDL
+		PHY
 		JSR	DrawMemory
+		PLY
 		INY
 		INY
 		CPY.b	#(!TestMemoryLength*2)
@@ -57,20 +56,17 @@ UpdateScreen:
 DrawMemory:
 		SEP	#$30
 		; .shortm, .shortx
-		PHY
 		JSR	DrawMemoryValue
 
-		LDA	!PPU_VMDATALREAD		;\
-		LDA	!PPU_VMDATALREAD		; | forward 3 tiles
-		LDA	!PPU_VMDATALREAD		;/
+		LDA	!WRAM_WMDATA			;\
+		LDA	!WRAM_WMDATA			; | forward 3 tiles
+		LDA	!WRAM_WMDATA			;/
 
 		TYA
 		CLC
 		ADC.b	#!TestSa1Register-!TestSnesRegister
 		TAY
-		JSR	DrawMemoryValue
-		PLY
-		RTS
+		;JMP	DrawMemoryValue
 
 DrawMemoryValue:
 		LDA	!TestSnesRegister+1, Y
@@ -80,21 +76,20 @@ DrawMemoryValue:
 		BEQ	.DrawOpenbus
 
 		LDA	!TestSnesRegister+0, Y
-.DrawValue	STZ	!PPU_VMDATAL
+.DrawValue	STZ	!WRAM_WMDATA
 		LDX.b	#'$'
-		STX	!PPU_VMDATAL
-		TAX
-		JSR	DrawHexX
+		STX	!WRAM_WMDATA
+		JSR	DrawHexA
 		RTS
 
 .DrawOpenbus	LDA.b	#'O'
-		STA	!PPU_VMDATAL
+		STA	!WRAM_WMDATA
 		LDA.b	#'P'
-		STA	!PPU_VMDATAL
+		STA	!WRAM_WMDATA
 		LDA.b	#'E'
-		STA	!PPU_VMDATAL
+		STA	!WRAM_WMDATA
 		LDA.b	#'N'
-		STA	!PPU_VMDATAL
+		STA	!WRAM_WMDATA
 		RTS
 
 

@@ -9,10 +9,10 @@
 !RomSize	= 32*1024
 !RamSize	= 0
 !RomType	= 0					; 0=LoROM / 1=HiROM
-!DEBUG		= 1					; Release build with comment out
+;!DEBUG		= 1					; Release build with comment out
 
-!VersionMajor	= 0
-!VersionMinor	= 80
+!VersionMajor	= 1
+!VersionMinor	= 0
 
 ;--------------------------------------------------
 ; ROM setting
@@ -29,17 +29,22 @@ if !RomType == 0
 	!LoROM	= 1
 	!HiROM	= 0
 
-	!EofAddress	= !RomSize*2+$808000
-	org	$808000
+	!RomStart	= $808000
+	!StartAddress	= $008000
+	!BankSize	= $008000
+	!EofAddress	= ((!RomSize)*2)+!RomStart
 else
 	print	"ROM Type: HiROM"
 	hirom
 	!LoROM	= 0
 	!HiROM	= 1
 
-	!EofAddress	= !RomSize+$C00000
-	org	$C00000
+	!RomStart	= $C00000
+	!StartAddress	= $008000
+	!BankSize	= $010000
+	!EofAddress	= (!RomSize)+!RomStart
 endif
+
 	print	"ROM Size: ", dec(!RomSize/1024), "KiB"
 	print	"RAM Size: ", dec(!RamSize/1024), "KiB"
 
@@ -50,15 +55,16 @@ else
 endif
 	print	"EOF Address:  $", hex(!EofAddress)
 
-	check bankcross off
-
 	!BlankByte	= select(defined("DEBUG"), $FF, $00)
 	padbyte	!BlankByte
 
+	check bankcross off
+	org	!RomStart
 	pad	!EofAddress
 	check bankcross on
 
 	optimize dp always
+
 
 ;--------------------------------------------------
 ; Library
@@ -93,7 +99,11 @@ CartridgeInformation:
 	db	"SA-1 READREGDUMP UTIL"			; $00FFC0 : Game title
 	pad $00FFD5
 	db	$23|!RomType				; $00FFD5 : Map mode (Slow 2.68 MHz)
+	if !RamSize > 0
 	db	$35					; $00FFD6 : Cartridge type (ROM + RAM + Battery + SA-1)
+	else
+	db	$33					; $00FFD6 : Cartridge type (ROM + SA-1)
+	endif
 	db	log2(!RomSize/1024)			; $00FFD7 : Rom size
 	db	log2(!RamSize/1024)			; $00FFD8 : Ram size
 	db	$00					; $00FFD9 : Destination code (Japan)
@@ -139,7 +149,7 @@ else
 	org	$C00000
 endif
 
-	;	 0123456789ABCDEF
+	;	 0123456789ABCDEF012345
 	db	"SA-1 READ REGISTER DUMP UTILITY"
 	%NewLine(CRLF, 1)
 	db	"ver "
@@ -158,8 +168,9 @@ endif
 ; Program
 ;--------------------------------------------------
 
-	padbyte $00
-;	org $008000
+	org !StartAddress
+	optimize dp	always
+	padbyte !BlankByte
 EmulationRESET:
 		SEI					;   for emulator vector detection
 		REP	#$CB				;   nv??dIzc
@@ -178,7 +189,7 @@ EmulationRESET:
 		TCD					; |   D  = #$0000
 		JML	.SetPBR				; |   PB = (PC Bank)
 .SetPBR		PHK					; |
-		PLB					; /   DB = (PC Bank)
+		PLB					;/   DB = (PC Bank)
 		SEP	#$30
 		; .shortm, .shortx
 
@@ -645,7 +656,7 @@ endif
 
 		JSR	TransferPalette_PalMain
 		JSR	TransferGraphics_Font
-		JSR	TransferTilemap_Main
+		JSR	InitializeTilemap_Main
 		; .longm, .shortx
 
 		SEP	#$30
@@ -707,7 +718,11 @@ TransferGraphics_Font:
 .Graphics
 incbin	"../Graphics/GFX_Font_4BPP_Gradation.bin"
 
+!TilemapOffset	= 32	; overscan off mode (224px)
 TransferTilemap_Main:
+		PHP
+		REP	#$20
+		SEP	#$10
 		; .longm, .shortx
 
 		LDX.b	#%00000000			;   Increment at $2118, No remap, Increment 1 word
@@ -719,15 +734,32 @@ TransferTilemap_Main:
 		LDA.w	#(%00000000)|(!PPU_VMDATAL<<8)	;\  DMA parameter = Bus: A to B / Address: Increment A / Transfer: 1 byte, 1 address
 							; | B-Bus address = !PPU_VMDATAL
 		STA	!DMA_DMAP0			;/    with !DMA_BBAD0
-		LDA.w	#(.Tilemap+32)			;\
+		LDA.w	#(!TilemapBuffer+!TilemapOffset);\
 		STA	!DMA_A1T0L			; | A-Bus address = .Tilemap
-		LDX.b	#((.Tilemap+32)>>16)		; |
+		LDX.b	#((!TilemapBuffer+!TilemapOffset)>>16)	; |
 		STX	!DMA_A1B0			;/
 		LDA.w	#$03C0				;\  DMA size = $03C0
 		STA	!DMA_DAS0L			;/
 		INX					;\  Execute DMA #0
 		STX	!CPU_MDMAEN			;/
 
+		PLP
+		RTS
+
+InitializeTilemap_Main:
+		PHP
+		PHB
+
+		REP	#$30
+		; .longm, .longx
+
+		LDA.w	#$03C0-1
+		LDX.w	#.Tilemap
+		LDY.w	#!TilemapBuffer
+		MVN	bank(!TilemapBuffer), bank(.Tilemap)	; dst, src
+
+		PLB
+		PLP
 		RTS
 
 .Tilemap
@@ -741,12 +773,15 @@ incbin	"Tilemap/Tilemap_Main.bin"
 		%DataAsciiNumber(!VersionMinor, 2, Zero)
 		pullpc
 
+
+;!DrawHex_Target	= !PPU_VMDATAL
+!DrawHex_Target	= !WRAM_WMDATA
 DrawHex:	; .shortm, .shortx
 DrawHexA:	TAX
 DrawHexX:	LDA	HexAsciiHighNibble, X
-		STA	!PPU_VMDATAL
+		STA	!DrawHex_Target
 		LDA	HexAsciiLowNibble, X
-		STA	!PPU_VMDATAL
+		STA	!DrawHex_Target
 		RTS
 
 ;--------------------------------------------------
