@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 pushd %~dp0
 
-set OutputName=SA1VersionCodeTest
+set OutputName=SA1ReadRegisterDumpUtility
 set MainSource=Main
 set Emulator=..\..\Mesen2\Mesen.exe
 set Assembler=..\..\Asar\asar.exe

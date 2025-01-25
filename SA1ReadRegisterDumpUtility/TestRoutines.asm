@@ -33,36 +33,6 @@ UpdateScreen:
 		LDA.b	#%00000000			;   Increment at $2118, No remap, Increment 1 word
 		STA	!PPU_VMAINC
 
-		; Result
-		%ScreenVramAddress($0C, $07)
-		LDY.b	#datasize(UpdateScreen_Message_Result)/3
-		LDX.b	#(datasize(UpdateScreen_Message_Result)/3)*0
-		LDA	!TestFinished
-		BEQ	.DrawStatus
-		BMI	+
-		LDX.b	#(datasize(UpdateScreen_Message_Result)/3)*1
-		BRA	.DrawStatus
-+		LDX.b	#(datasize(UpdateScreen_Message_Result)/3)*2
-.DrawStatus -	LDA	.Message_Result, X
-		STA	!PPU_VMDATAL
-		INX
-		DEY
-		BNE	-
-
-		; Result - Version code 1 (SNES $230E VC)
-		%ScreenVramAddress($15, $07)
-		LDX.b	#'$'
-		STX	!PPU_VMDATAL
-		LDX	!TestVersionVC
-		JSR	DrawHexX
-
-		; Result - Version code 2 (???? $???? ??)
-		%ScreenVramAddress($1B, $07)
-		LDX.b	#'$'
-		STX	!PPU_VMDATAL
-		LDX	!TestVersionVCTrue
-		JSR	DrawHexX
-
 		; Registers
 		;%ScreenVramAddress($13, $0B+Y)
 		LDY.b	#$00
@@ -74,7 +44,7 @@ UpdateScreen:
 		ASL
 		ASL
 		ASL
-		ADC.w	#($0A*32)+$13
+		ADC.w	#($08*32)+$13
 		STA	!PPU_VMADDL
 		JSR	DrawMemory
 		INY
@@ -83,11 +53,6 @@ UpdateScreen:
 		BCC	.LoopRegistor
 
 		RTS
-
-.Message_Result
-		db	"RUNNING"
-		db	"PASSED", $0
-		db	"FAILED", $0
 
 DrawMemory:
 		SEP	#$30
@@ -213,7 +178,10 @@ SNESMessage_TestFinished:
 		LDA.b	#%00000000			;\  disable SA-1 to SNES IRQ
 		STA	!SA1_SIE			;/
 
-		JMP	CheckResult
+		LDA.b	#$01
+		STA	!TestFinished
+
+		RTS
 
 
 
@@ -407,24 +375,6 @@ ClearIRam:
 		BNE	.Loop
 
 		PLP
-		RTS
-
-CheckResult:
-		; .shortm, .shortx
-
-		LDA	!TestSnesVC
-		STA	!TestVersionVC
-
-		LDA	!TestSnesVC			; TODO: Check result
-		STA	!TestVersionVCTrue
-
-
-		BRA	.Failed				; TODO: Implements
-		INC	!TestFinished
-		BRA	.Finish
-.Failed		DEC	!TestFinished
-.Finish
-
 		RTS
 
 

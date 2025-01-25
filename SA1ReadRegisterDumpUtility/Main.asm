@@ -1,5 +1,5 @@
 ;--------------------------------------------------
-; SA-1 RAM protection test
+; SA-1 Read register dump utility
 ;--------------------------------------------------
 
 ;--------------------------------------------------
@@ -12,7 +12,7 @@
 !DEBUG		= 1					; Release build with comment out
 
 !VersionMajor	= 0
-!VersionMinor	= 0
+!VersionMinor	= 80
 
 ;--------------------------------------------------
 ; ROM setting
@@ -79,7 +79,7 @@ incsrc	"RamMap.asm"
 	padbyte $00
 AdditionalCartridgeInformation:
 	db	"HK"					; $00FFB0 : Maker code
-	db	"06SV"					; $00FFB2 : Game code
+	db	"06SR"					; $00FFB2 : Game code
 	db	0,0,0,0,0,0				; $00FFB6 : Reserved
 	db	$00					; $00FFBC : Expansion flash size
 	db	$00					; $00FFBD : Expansion Ram size
@@ -90,7 +90,7 @@ AdditionalCartridgeInformation:
 	padbyte $20
 CartridgeInformation:
 	;	 0123456789ABCDEF01234
-	db	"SA-1 VERSIONCODE TEST"			; $00FFC0 : Game title
+	db	"SA-1 READREGDUMP UTIL"			; $00FFC0 : Game title
 	pad $00FFD5
 	db	$23|!RomType				; $00FFD5 : Map mode (Slow 2.68 MHz)
 	db	$35					; $00FFD6 : Cartridge type (ROM + RAM + Battery + SA-1)
@@ -140,7 +140,7 @@ else
 endif
 
 	;	 0123456789ABCDEF
-	db	"SA-1 VERSION CODE TEST"
+	db	"SA-1 READ REGISTER DUMP UTILITY"
 	%NewLine(CRLF, 1)
 	db	"ver "
 	%DataAsciiNumber(!VersionMajor, 1, None)
@@ -217,8 +217,6 @@ EmulationRESET:
 		JSR	TransferOam
 
 		; Upload to sound driver
-		; TODO : Implements
-
 		; Clear SRAM
 		; Don't do
 

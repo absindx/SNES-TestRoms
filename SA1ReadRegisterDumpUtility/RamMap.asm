@@ -71,9 +71,7 @@ warnings pull
 ;--------------------------------------------------
 
 	org	$0000
-%DefineRamNext(TestFinished,			1)	; $0000 0=Running, 1=Passed, 255=Failed
-%DefineRamNext(TestVersionVC,			1)	; $0001 (SNES) $230E VC
-%DefineRamNext(TestVersionVCTrue,		1)	; $0002 (????) $???? True VC
+%DefineRamNext(TestFinished,			1)	; $0000 0=Running, 1=Finished
 
 	org	!SA1_IRamImage+$00
 %DefineRamNext(TestSnesSFR,			2)	; $3000
@@ -91,8 +89,10 @@ warnings pull
 %DefineRamNext(TestSnesVDPL,			2)	; $3018
 %DefineRamNext(TestSnesVDPH,			2)	; $301A
 %DefineRamNext(TestSnesVC,			2)	; $301C
-%DefineRamNext(TestSnesUndefined,		2)	; $301E
-%DefineRamNext(TestSnesMirror,			2)	; $3020
+%DefineRamNext(TestSnesUndefined_0F,		2)	; $301E
+%DefineRamNext(TestSnesUndefined_10,		2)	; $3020
+%DefineRamNext(TestSnesUndefined_11,		2)	; $3022
+%DefineRamNext(TestSnesUndefined_12,		2)	; $3024
 	skip align 32
 %DefineRamNext(TestSa1SFR,			2)	; $3040
 %DefineRamNext(TestSa1CFR,			2)	; $3042
@@ -109,10 +109,12 @@ warnings pull
 %DefineRamNext(TestSa1VDPL,			2)	; $3058
 %DefineRamNext(TestSa1VDPH,			2)	; $305A
 %DefineRamNext(TestSa1VC,			2)	; $305C
-%DefineRamNext(TestSa1Undefined,		2)	; $305E
-%DefineRamNext(TestSa1Mirror,			2)	; $3060
+%DefineRamNext(TestSa1Undefined_0F,		2)	; $305E
+%DefineRamNext(TestSa1Undefined_10,		2)	; $3060
+%DefineRamNext(TestSa1Undefined_11,		2)	; $3062
+%DefineRamNext(TestSa1Undefined_12,		2)	; $3064
 
-!TestMemoryLength	= 17
+!TestMemoryLength	= 19
 !TestSnesRegister	= TestSnesSFR
 !TestSa1Register	= TestSa1SFR
 
