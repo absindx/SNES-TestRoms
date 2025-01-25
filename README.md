@@ -2,12 +2,19 @@
 
 Homebrew SNES test ROMs.  
 
-## Test rom  
+## Test ROM  
 
 * [SA1RamProtectionTest](SA1RamProtectionTest/)  
   Test the RAM protection of the SA-1.  
 * [SA1RebootTest](SA1RamProtectionTest/)  
   Test the register values after rebooting SA-1.  
+
+### Utility ROM  
+
+These are ROMs created for hardware testing and do not match the expected values.  
+
+* [SA1ReadRegisterDumpUtility](SA1ReadRegisterDumpUtility/)  
+  SA-1 Read register boot initial values from both the SNES and SA-1 sides.  
 
 ## Test environment  
 
@@ -20,6 +27,10 @@ Homebrew SNES test ROMs.
     * Chip: `RF5A123 / 6LF 8Y`  
   * Board: `SHVC-1L0B-01` [(A2WJ)](https://github.com/absindx/SNES-TestRoms/issues/2#issue-2447184008)  
     * Chip: `RF5A123 / 5GF 7N`  
+
+## Technical information  
+
+See [wiki](https://github.com/absindx/SNES-TestRoms/wiki) (It is written in Japanese).
 
 ## Assembler  
 
