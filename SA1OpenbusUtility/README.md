@@ -20,7 +20,7 @@ The list of addresses to test is in `TestPattern.asm`.
 ## Test environment  
 
 * SNES:  
-  * Super Famicom  
+  * Super Famicom (NTSC-J)  
   * Board: `SNSRGB01`  
 * SA-1 cartridge:  
   * Board: `SHVC-1L5B-20` [(A4WJ)](https://absindx.github.io/ZpIndIndY/Articles/SnesSA1Cartridge/)  

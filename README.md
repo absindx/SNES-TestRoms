@@ -15,6 +15,8 @@ These are ROMs created for hardware testing and do not match the expected values
 
 * [SA1ReadRegisterDumpUtility](SA1ReadRegisterDumpUtility/)  
   SA-1 Read register boot initial values from both the SNES and SA-1 sides.  
+* [SA1OpenbusUtility](SA1OpenbusUtility/)  
+  Displays the value read from the specified address on both the SNES and SA-1 sides.  
 
 ## Test environment  
 
