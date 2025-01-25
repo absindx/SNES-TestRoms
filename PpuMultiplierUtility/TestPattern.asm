@@ -1,0 +1,28 @@
+;--------------------------------------------------
+; Test pattern
+;--------------------------------------------------
+
+		%DefinePattern_L($0000, $00)
+		%DefinePattern_L($0001, $00)
+		%DefinePattern_L($0002, $00)
+		;%DefinePattern_L($0004, $00)
+		;%DefinePattern_L($0009, $00)
+		%DefinePattern_L($0012, $00)
+		%DefinePattern_L($0123, $00)
+		%DefinePattern_L($1234, $00)
+		;%DefinePattern_L($1234, $01)
+		%DefinePattern_L($1235, $00)
+		%DefinePattern_L($7FFF, $00)
+		%DefinePattern_L($8000, $00)
+		%DefinePattern_L($FFFF, $00)
+		%DefinePattern_M($00)
+		%DefinePattern_M($01)
+		%DefinePattern_M($02)
+		;%DefinePattern_M($04)
+		;%DefinePattern_M($08)
+		%DefinePattern_M($10)
+		%DefinePattern_M($12)
+		%DefinePattern_M($7F)
+		%DefinePattern_M($80)
+		%DefinePattern_M($FF)
+		%DefinePattern_H()
