@@ -13,6 +13,8 @@ Homebrew SNES test ROMs.
 
 These are ROMs created for hardware testing and do not match the expected values.  
 
+* [PpuMultiplierUtility](PpuMultiplierUtility/)  
+  It displays the result of accessing the PPU multipler calculation result in 1 CPU cycle (6 master cycles).  
 * [SA1ReadRegisterDumpUtility](SA1ReadRegisterDumpUtility/)  
   SA-1 Read register boot initial values from both the SNES and SA-1 sides.  
 * [SA1OpenbusUtility](SA1OpenbusUtility/)  
@@ -23,6 +25,8 @@ These are ROMs created for hardware testing and do not match the expected values
 * SNES:  
   * Super Famicom (NTSC-J)  
   * Board: `SNSRGB01`  
+* LoROM cartridge:  
+  * Board: `SHVC-1A0N-20`  
 * SA-1 cartridge:  
   * Board: `SHVC-1L5B-20` [(A4WJ)](https://absindx.github.io/ZpIndIndY/Articles/SnesSA1Cartridge/)  
     * Chip: `RF5A123 / 6KD 80`  

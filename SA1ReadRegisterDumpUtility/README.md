@@ -2,18 +2,19 @@
 
 **It is a utility ROM that does not judge.**  
 
+SA-1 Read register boot initial values from both the SNES and SA-1 sides.  
+
+## Test details  
+
+If SNES Openbus activity is detected, it will display `OPEN`.  
+[SA-1 BW-RAM Openbus](https://github.com/absindx/SNES-TestRoms/wiki/SA%E2%80%901-BW%E2%80%90RAM-Openbus) is set to `$BB`.  
+
 ## For automated testing  
 
 The test ends when address `$000000 (TestFinished)` becomes non-zero.  
 The meaning of the value of this address is `0=Running, 1=Finished` .  
 
 See [RamMap.asm](RamMap.asm) for other memory usage.  
-
-## Test details  
-
-SA-1 Read register boot initial values from both the SNES and SA-1 sides.  
-If SNES Openbus activity is detected, it will display `OPEN`.  
-[SA-1 BW-RAM Openbus](https://github.com/absindx/SNES-TestRoms/wiki/SA%E2%80%901-BW%E2%80%90RAM-Openbus) is set to `$BB`.  
 
 ## Test environment  
 

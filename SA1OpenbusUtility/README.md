@@ -2,20 +2,21 @@
 
 **It is a utility ROM that does not judge.**  
 
+Displays the value read from the specified address on both the SNES and SA-1 sides.  
+
+## Test details  
+
+Test the SNES Openbus value against the high byte of the target address and `$AA`.  
+[SA-1 BW-RAM Openbus](https://github.com/absindx/SNES-TestRoms/wiki/SA%E2%80%901-BW%E2%80%90RAM-Openbus) is set to `$BB`.  
+BW-RAM is initialized with `$CC`.  
+The list of addresses to test is in `TestPattern.asm`.  
+
 ## For automated testing  
 
 The test ends when address `$000000 (TestFinished)` becomes non-zero.  
 The meaning of the value of this address is `0=Running, 1=Finished` .  
 
 See [RamMap.asm](RamMap.asm) for other memory usage.  
-
-## Test details  
-
-Displays the value read from the specified address on both the SNES and SA-1 sides.  
-Test the SNES Openbus value against the high byte of the target address and `$AA`.  
-[SA-1 BW-RAM Openbus](https://github.com/absindx/SNES-TestRoms/wiki/SA%E2%80%901-BW%E2%80%90RAM-Openbus) is set to `$BB`.  
-BW-RAM is initialized with `$CC`.  
-The list of addresses to test is in `TestPattern.asm`.  
 
 ## Test environment  
 
