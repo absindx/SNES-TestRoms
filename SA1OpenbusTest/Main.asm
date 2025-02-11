@@ -670,8 +670,10 @@ endif
 		; Initialize SA-1
 		JSR	InitializeSA1
 		JSR	TestSnesInitialize
-		JSR	TestSnesExecute
-		JSR	TestSa1Initialize
+		JSR	TestSa1Initialize		;   boot SA-1
+		JSR	WaitSa1Boot
+		JSR	TestMainloop
+		;JSR	TestSnesExecute
 
 		PLP
 		RTS
@@ -835,6 +837,10 @@ SA1RESET:
 		STA	!SA1_CIC			;/
 		LDA.b	#%11111111			;\  unlock I-RAM protection from SA-1
 		STA	!SA1_CIWP			;/
+		LDA.b	#%10000000			;\
+		STA	!SA1_CBWE			; | unlock BW-RAM protection from SA-1
+		LDA.b	#$00				; |
+		STA	!SA1_BWPA			;/
 
 		JML	.SetPBR				;\  PB = $00
 .SetPBR		PHK					; | DB = $00

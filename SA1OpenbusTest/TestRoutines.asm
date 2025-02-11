@@ -12,6 +12,7 @@ incsrc	"../Include/IOName_Standard.asm"
 incsrc	"../Include/IOName_SA1.asm"
 
 incsrc	"RamMap.asm"
+incsrc	"MessageID.asm"
 
 
 
@@ -391,6 +392,23 @@ SNESMessage_NOP:
 		RTS
 
 SNESMessage_Boot:
+		LDA.b	#$01
+		STA	!Sa1Booted
+
+		LDA	!BwramExist
+		BEQ	.NoBwram
+
+		LDA	!BwramSize+0
+		STA	!TestSramSize+0
+		LDA	!BwramSize+1
+		STA	!TestSramSize+1
+		LDA	!BwramSize+2
+		STA	!TestSramSize+2
+		RTS
+
+.NoBwram	STZ	!TestSramSize+0
+		STZ	!TestSramSize+1
+		STZ	!TestSramSize+2
 		RTS
 
 SNESMessage_TestFinished:
@@ -416,33 +434,46 @@ macro	SetSa1Databus(value)
 endmacro
 
 macro	SendSA1Message(messageType, irq)
+		; SA-1 -> SNES IRQ
 		; .shortm
 		LDA.b	#(<irq><<7)+(<messageType>&$0F)
 		STA	!SA1_SCNT
 endmacro
-
-!Message_Boot		= 0
-!Message_TestFinished	= 15
+macro	SendSnesMessage(messageType, irq)
+		; SNES -> SA-1 IRQ
+		; .shortm
+		LDA.b	#(<irq><<7)+(<messageType>&$0F)
+		STA	!SA1_CCNT
+endmacro
 
 SA1TestMain:
 		SEP	#$30
 		; .shortm, .shortx
 
-		%SendSA1Message(!Message_Boot, 1)
+		JSR	CheckBwRam
+		%SendSA1Message(!Message_SA1_SNES_Boot, 1)
 
-		JSR	TestSa1Execute
+.WaitLoop	LDA	!Sa1Booted
+		BEQ	.WaitLoop
 
-		; fallthrough
-
-SA1TestFinished:
-		SEP	#$30
-		; .shortm, .shortx
-
-		%SendSA1Message(!Message_TestFinished, 1)
+;;		JSR	TestSa1Execute
+;		; fallthrough
+;SA1TestFinished:
+;		SEP	#$30
+;		; .shortm, .shortx
+;		%SendSA1Message(!Message_TestFinished, 1)
+;.InfLoop
+;		%SendSA1Message(!Message_TestFinished, 0)
+;		BRA	.InfLoop
 
 .InfLoop
-		%SendSA1Message(!Message_TestFinished, 0)
+		LDA.b	#$80				;\  accespet IRQ from SNES CPU
+		STA	!SA1_CIE			;/
+		CLI
+		%SendSA1Message(!Message_SA1_SNES_Idle, 0)
 		BRA	.InfLoop
+
+
 
 SA1ProcessMessage:
 		LDA	!SA1_CFR			;\  process message from SNES-CPU
@@ -450,17 +481,12 @@ SA1ProcessMessage:
 		ASL
 		TAX
 
-		LDA.b	#$0B				;   IRQ message accepted
-		STA	!SA1_SCNT
-
 		JSR	(.MessageTable, X)
 
-		LDA.b	#$0C				;   IRQ message processed
-		STA	!SA1_SCNT
 		RTS
 
 .MessageTable
-		dw	SA1Message_NOP			; #0
+		dw	SA1Message_TestExecute		; #0
 		dw	SA1Message_NOP			; #1
 		dw	SA1Message_NOP			; #2
 		dw	SA1Message_NOP			; #3
@@ -480,34 +506,15 @@ SA1ProcessMessage:
 SA1Message_NOP:
 		RTS
 
+SA1Message_TestExecute:
+		%SendSA1Message(!Message_SA1_SNES_Running, 0)
+		JMP	TestSa1Execute
+
 
 
 ;--------------------------------------------------
 ; Test routines
 ;--------------------------------------------------
-
-TestSnesInitialize:
-		REP	#$10
-		SEP	#$20
-		; .shortm, .longx
-
-		STZ	!TestFinished
-
-		LDA.b	#0
-		STA	!LastTestPatternID
-		LDX.w	#-!TestPattern_EntrySize
-		STX	!LastTestPatternOffset
-
-		JSR	NextTestPattern
-
-		RTS
-
-TestSa1Initialize:
-		SEP	#$10
-		; .shortx
-		LDX.b	#%00000000			;\  SA-1 CPU clear reset
-		STX	!SA1_CCNT			;/  Message = $0
-		RTS
 
 ClearIRam:
 		PHP
@@ -557,50 +564,253 @@ ClearBwRam:
 		PLP
 		RTS
 
-; Argument:
-;   !TestAddressPointer
-;   !TestResultPointer
-;   !TestAccessPointer = #$AA00
-; Effect:
-;   !TestResultPointer = +4
-;   !TestCalculatePointer
-TestAddressRead:
-		; .shortm, .longx
-		PHB
+CheckBwRam:
+		; .shortm, shortx
+		JSR	TestBwRamExists
+		JMP	TestBwRamSize
 
-		SEC					;\
-		LDA	!TestAddressPointerL		; |
-		SBC.b	#$00				; | ScratchMemory[6-8] = ScratchMemory[0-2] - #$00AA00
-		STA	!TestCalculatePointerL		; |
-		LDA	!TestAddressPointerH		; |
-		SBC.b	#!SnesOpenBusValue		; |
-		STA	!TestCalculatePointerH		; |
-		LDA	!TestAddressPointerB		; |
-		SBC.b	#$00				; |
-		STA	!TestCalculatePointerB		;/
+TestBwRamExists:
+		; FIXME: Implement details later
 
-		LDY	!TestCalculatePointer
+		LDA.b	#$AA
+		STA	!SA1_BWRam+0
+		LDA.b	#$BB
+		STA	!SA1_BWRam+1
+		LDA	!SA1_BWRam+0
+		CMP.b	#$AA
+		BNE	.NoBwram
 
-		%SetSa1Databus(!Sa1OpenBusValue1)
-		LDA	!TestAddressPointerB
-		PHA
-		PLB
-		LDA	(!TestAddressPointer)
-		STA	[!TestResultPointer]
-		INC.b	!TestResultPointerL
+.HasBwram	LDA.b	#$01
+		STA	!BwramExist
+		RTS
 
-		%SetSa1Databus(!Sa1OpenBusValue1)
-		LDA	!TestCalculatePointerB
-		PHA
-		PLB
-		LDA	(!TestAccessPointer), Y
-		STA	[!TestResultPointer]
-		PLB
+.NoBwram	STZ	!BwramExist
+		RTS
+
+TestBwRamSize:
+; Get BW-RAM size (from SA-1 CPU)
+%DefineLocal(TestPointer, !ScratchMemory+0, 3)
+%DefineLocal(PassPointer, !ScratchMemory+3, 3)
+
+		SEP	#$30
+		; .shortm, shortx
+
+		;STZ	!TestSramSize+0			;\
+		;STZ	!TestSramSize+1			; | clear results
+		;STZ	!TestSramSize+2			;/
+
+		LDA.b	#$02				;\
+		STA	.TestPointer+0			; | initialize pointers
+		STZ	.TestPointer+1			; | .TestPointer = $400002
+		STZ	.PassPointer+0			; | .PassPointer = $400000
+		STZ	.PassPointer+1			; |
+		LDA.b	#$40				; |
+		STA	.TestPointer+2			; |
+		STA	.PassPointer+2			;/
+
+		;%TestMemory(!SA1_BWRam, l)		;\  check 0 bytes
+		;BEQ	.RoughCheck			;/
+		;RTS					;   no SRAM, exit test
+
+.RoughCheck	; Check size in powers of 2
+		;INC	!TestSramSize+0
+
+.RoughLoop
+		LDA.b	#$BB
+		STA.b	[.TestPointer]
+		LDA.b	#$AA
+		STA.l	!SA1_BWRam
+		CMP.b	[.TestPointer]
+		BEQ	.DetailCheck			;   equal -> memory test fail
+
+		LDA	.TestPointer+0			;   slide pointer
+		STA	.PassPointer+0
+		LDA	.TestPointer+1
+		STA	.PassPointer+1
+		LDA	.TestPointer+2
+		STA	.PassPointer+2
 
 		CLC
-		LDA	!TestResultPointerL
-		ADC.b	#3
-		STA	!TestResultPointerL
+		LDA	.TestPointer+0
+		ORA	.TestPointer+1
+		BNE	+
+		SEC
++		ROL	.TestPointer+0
+		ROL	.TestPointer+1
+		BCC	.RoughLoop
+		LDA	.TestPointer+2			;   next bank
+		INC	A
+		STA	.TestPointer+2
+		CMP	#$50
+		BCS	.Exit				;   $500000, exit test
+		BRA	.RoughLoop
+
+.DetailCheck
+		;CLC
+		LDA	.PassPointer+0			;   revert pointer and +1
+		ADC.b	#$01
+		STA	.TestPointer+0
+		LDA	.PassPointer+1
+		ADC.b	#$00
+		STA	.TestPointer+1
+		LDA	.PassPointer+2
+		ADC.b	#$00
+		STA	.TestPointer+2
+
+.DetailLoop
+		LDA.b	#$BB
+		STA.b	[.TestPointer]
+		LDA.b	#$AA
+		STA.l	!SA1_BWRam
+		CMP.b	[.TestPointer]
+		BEQ	.Exit
+
+		INC	.TestPointer+0
+		BNE	+
+		INC	.TestPointer+1
+		BNE	+
+		INC	.TestPointer+2
++
+		BRA	.DetailLoop
+
+.Exit
+		LDA	.TestPointer+0
+		STA	!BwramSize+0
+		LDA	.TestPointer+1
+		STA	!BwramSize+1
+		LDA	.TestPointer+2
+		AND.b	#$3F
+		STA	!BwramSize+2
+
+		RTS
+
+WaitSa1Boot:
+		PHP
+		SEP	#$20
+		CLI
+		; .shortm
+.Loop		LDA	!Sa1Booted
+		BEQ	.Loop
+		PLP
+		RTS
+
+WaitSa1Irq:
+		; .shortm
+.LoopProcess	LDA	!SA1_SFR
+		AND.b	#$0F
+		CMP.b	#!Message_SA1_SNES_Idle
+		BEQ	.LoopProcess
+.LoopIdle	LDA	!SA1_SFR
+		AND.b	#$0F
+		CMP.b	#!Message_SA1_SNES_Idle
+		BNE	.LoopIdle
+		RTS
+
+
+;; Argument:
+;;   !TestAddressPointer
+;;   !TestResultPointer
+;;   !TestAccessPointer = #$AA00
+;; Effect:
+;;   !TestResultPointer = +4
+;;   !TestCalculatePointer
+;TestAddressRead:
+;		; .shortm, .longx
+;		PHB
+;
+;		SEC					;\
+;		LDA	!TestAddressPointerL		; |
+;		SBC.b	#$00				; | ScratchMemory[6-8] = ScratchMemory[0-2] - #$00AA00
+;		STA	!TestCalculatePointerL		; |
+;		LDA	!TestAddressPointerH		; |
+;		SBC.b	#!SnesOpenBusValue		; |
+;		STA	!TestCalculatePointerH		; |
+;		LDA	!TestAddressPointerB		; |
+;		SBC.b	#$00				; |
+;		STA	!TestCalculatePointerB		;/
+;
+;		LDY	!TestCalculatePointer
+;
+;		%SetSa1Databus(!Sa1OpenBusValue1)
+;		LDA	!TestAddressPointerB
+;		PHA
+;		PLB
+;		LDA	(!TestAddressPointer)
+;		STA	[!TestResultPointer]
+;		INC.b	!TestResultPointerL
+;
+;		%SetSa1Databus(!Sa1OpenBusValue1)
+;		LDA	!TestCalculatePointerB
+;		PHA
+;		PLB
+;		LDA	(!TestAccessPointer), Y
+;		STA	[!TestResultPointer]
+;		PLB
+;
+;		CLC
+;		LDA	!TestResultPointerL
+;		ADC.b	#3
+;		STA	!TestResultPointerL
+;
+;		RTS
+
+;--------------------------------------------------
+
+TestSnesInitialize:
+		REP	#$10
+		SEP	#$20
+		; .shortm, .longx
+
+		STZ	!TestFinished
+
+		LDA.b	#0
+		STA	!LastTestPatternID
+		LDX.w	#-!TestPattern_EntrySize
+		STX	!LastTestPatternOffset
+
+		JSR	NextTestPattern
+
+		RTS
+
+TestSa1Initialize:
+		SEP	#$10
+		; .shortx
+		LDX.b	#%00000000			;\  SA-1 CPU clear reset
+		STX	!SA1_CCNT			;/  Message = $0
+		RTS
+
+; SNES CPU
+TestMainloop:
+.TestLoop
+		SEP	#$20
+		REP	#$10
+		; .shortm, .longx
+
+		LDX	!LastTestPatternOffset
+		LDA	TestPatternTable, X
+		BNE	.ValidPattern
+		JSR	NextTestPattern
+		BVC	.TestLoop
+		JMP	TestPatternFinished
+
+.ValidPattern
+		CMP.b	!TestPattern_CPU_SNES
+		BNE	.PatternSa1
+
+.PatternSnes
+		JSR	TestSnesExecute
+		JSR	NextSubTestPattern
+		BRA	.TestLoop
+
+.PatternSa1
+		%SendSnesMessage(!Message_SNES_SA1_TestExecute, 1)
+		JSR	WaitSa1Irq
+		JSR	NextSubTestPattern
+		BRA	.TestLoop
+
+TestPatternFinished:
+		; TODO: Implements
+		;   pass/fail
 
 		RTS
 
@@ -608,10 +818,14 @@ TestAddressRead:
 ; Argument:
 ;   A = TestID
 TestSa1Execute:
+		; TODO: Implements
+		RTS
+
 		REP	#$30
 		; .longm, .longx
 		AND.w	#$00FF
 		DEC	A
+
 ;		CMP.w	#!TestDefinedMax
 ;		BCC	+
 ;		JMP	SA1TestFinished
@@ -622,13 +836,16 @@ TestSa1Execute:
 ;		JMP	(TestHandlerTable, X)
 
 TestSnesExecute:
+		; TODO: Implements
+		RTS
+
 		REP	#$30
 		; .longm, .longx
 ;		LDA	!TestingID
 ;		AND.w	#$00FF
 ;		DEC	A
 ;		ASL
-;		ASL				; CLC
+;		ASL					; CLC
 ;		ADC.w	#$02
 ;		TAX
 ;		LDX.w	#$0000
@@ -641,14 +858,16 @@ TestSnesExecute:
 
 
 NextSubTestPattern:
+		PHP
 		REP	#$31
 		; .longm, .longx, CLC
 
 		LDA	!LastTestPatternOffset
 		ADC.w	#0008
+		STA	!LastTestPatternOffset
 
-
-
+		PLP
+		RTS
 
 NextTestPattern:
 %DefineLocal(counter, !ScratchMemory+0, 1)
@@ -665,8 +884,8 @@ NextTestPattern:
 		LDX.w	#0
 		JSR	GetTestPatternOffset
 
-		REP	#$30
-		; .longm, .longx
+		REP	#$70
+		; .longm, .longx, CLV
 		LDX.w	#!TestAddressResult
 
 .Loop		LDA	!LastTestPatternID
@@ -675,7 +894,12 @@ NextTestPattern:
 		BNE	.Clear
 .Copy		LDA	TestPatternTable+0, Y
 		STA	$00, X
-		LDA	TestPatternTable+2, Y
+
+		AND.w	#$00FF
+		BNE	.ValidPattern
+		SEP	#$40
+
+.ValidPattern	LDA	TestPatternTable+2, Y
 		STA	$02, X
 		LDA	TestPatternTable+4, Y
 		STA	$04, X
@@ -788,5 +1012,6 @@ endmacro
 	fillbyte	$00
 TestPatternTable:
 	incsrc		"TestPattern.asm"
+	db		$00				;   sentinel
 	fillbyte	!BlankByte
 
