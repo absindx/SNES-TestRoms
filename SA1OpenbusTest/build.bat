@@ -7,6 +7,7 @@ set MainSource=Main
 set Emulator=..\..\Mesen2\Mesen.exe
 set Assembler=..\..\Asar\asar.exe
 set AssembleOptions=--symbols=wla --fix-checksum=on
+set AssembleOptions_NoSave=--define NOSRAM
 rem                 --verbose
 
 echo -------------------------------------------------->  build.log
@@ -23,11 +24,15 @@ type build.log
 
 if not %AssembleResult% == 0 goto Restore
 
-if "%1"=="" goto Return
+:AssembleNoSRAM
+%Assembler% %AssembleOptions% %AssembleOptions_NoSave% "%MainSource%.asm" "%OutputName%(NO SRAM).sfc" >> NUL 2>&1
+
+if not "%1"=="" (
 	rem Force reload from commandline
-	rem start %Emulator% "%OutputName%"
 	start %Emulator% "%OutputName%.sfc"
-	goto Return
+)
+
+goto Return
 
 :Restore
 move /Y "%OutputName%.sfc.old" "%OutputName%.sfc" > NUL 2>&1

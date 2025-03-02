@@ -438,6 +438,20 @@ UpdateJoypad:
 		PLP
 		RTS
 
+DebugWait:
+		PHP
+		JSR	ScreenOff
+		JSR	UpdateScreen
+		JSR	ScreenOn
+.LoopWait	WAI
+		JSR	ScreenOn
+		JSR	UpdateJoypad
+		BIT	JoypadPress+0
+		BPL	.LoopWait
+		STZ	!DisplayResult
+		PLP
+		RTS
+
 ;--------------------------------------------------
 
 NativeNMI:
@@ -669,6 +683,7 @@ endif
 
 		; Initialize SA-1
 		JSR	InitializeSA1
+		JSR	ScreenOn
 		JSR	TestSnesInitialize
 		JSR	TestSa1Initialize		;   boot SA-1
 		JSR	WaitSa1Boot

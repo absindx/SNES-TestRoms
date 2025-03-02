@@ -25,6 +25,12 @@ function ShiftWord(value, i)		= ((value)>>(i*8))&$FFFF
 function ScreenWramAddress(x, y)	= ScreenVramAddress(!TilemapBufferWram+!TilemapOffset, 32, x, y)
 
 UpdateScreen:
+		JSR	UpdateScreenBuffer
+
+		; Update screen
+		JMP	TransferTilemap_Main
+
+UpdateScreenBuffer:
 		SEP	#$30
 		; .shortm, .shortx
 
@@ -38,10 +44,7 @@ UpdateScreen:
 		JSR	WriteTestID
 
 		; Test pattern
-		JSR	WriteTestPatternsLine
-
-		; Update screen
-		JMP	TransferTilemap_Main
+		JMP	WriteTestPatternsLine
 
 WriteTestResult:
 %DefineLocal(DataSize, 7, 1)
@@ -156,8 +159,6 @@ WriteTestPatternsLine:
 		LDA.b	#':'
 		STA	!WRAM_WMDATA
 		JSR	WriteTestPattern_Actual
-
-		; TODO: Implements
 
 		STZ	!WRAM_WMDATA			; dummy * 4
 		STZ	!WRAM_WMDATA
@@ -414,9 +415,6 @@ SNESMessage_Boot:
 SNESMessage_TestFinished:
 		LDA.b	#%00000000			;\  disable SA-1 to SNES IRQ
 		STA	!SA1_SIE			;/
-
-		LDA.b	#$01
-		STA	!TestFinished
 
 		RTS
 
@@ -694,7 +692,7 @@ WaitSa1Boot:
 		PLP
 		RTS
 
-WaitSa1Irq:
+WaitSa1TestPattern:
 		; .shortm
 .LoopProcess	LDA	!SA1_SFR
 		AND.b	#$0F
@@ -765,7 +763,7 @@ TestSnesInitialize:
 
 		LDA.b	#0
 		STA	!LastTestPatternID
-		LDX.w	#-!TestPattern_EntrySize
+		LDX.w	#0
 		STX	!LastTestPatternOffset
 
 		JSR	NextTestPattern
@@ -787,8 +785,10 @@ TestMainloop:
 		; .shortm, .longx
 
 		LDX	!LastTestPatternOffset
-		LDA	TestPatternTable, X
+		LDA	!TestAddressResult, X
 		BNE	.ValidPattern
+.JudgePattern
+		JSR	JudgeTestPattern
 		JSR	NextTestPattern
 		BVC	.TestLoop
 		JMP	TestPatternFinished
@@ -804,13 +804,16 @@ TestMainloop:
 
 .PatternSa1
 		%SendSnesMessage(!Message_SNES_SA1_TestExecute, 1)
-		JSR	WaitSa1Irq
+		JSR	WaitSa1TestPattern
 		JSR	NextSubTestPattern
 		BRA	.TestLoop
 
 TestPatternFinished:
-		; TODO: Implements
-		;   pass/fail
+		LDA	!DisplayResult
+		BNE	.SkipPass
+		LDA.b	#$01
+.SkipPass	STA	!DisplayResult
+		STA	!TestFinished
 
 		RTS
 
@@ -857,6 +860,60 @@ TestSnesExecute:
 ;		pullpc
 
 
+JudgeTestPattern:
+%DefineLocal(basePointer,  !ScratchMemory+0, 2)
+%DefineLocal(failCount, !ScratchMemory+2, 1)
+
+		SEP	#$21
+		; .shortm, .longx, SEC
+
+		LDX.w	#!TestAddressResult
+		STX	.basePointer
+
+		TDC
+		;SEC
+		LDA.b	#(!TestResult_00_ExpectNone-TestResult_00_ID)
+		SBC	!BwramExist
+		TAX
+
+.LoopEntry	LDY.w	#(!TestResult_00_ID-TestResult_00_ID)
+		LDA	(.basePointer), Y
+		BEQ	.Return
+
+		LDY.w	#(!TestResult_00_Actual-TestResult_00_ID)
+		LDA	(.basePointer), Y
+		TXY
+		CMP	(.basePointer), Y
+		BEQ	.DetectPass
+.DetectFail	INC	.failCount
+.DetectPass	CLC
+		LDA	.basePointer
+		ADC.b	#!TestPattern_EntrySize
+		STA	.basePointer
+		BRA	.LoopEntry
+
+.Return
+		SEP	#$30
+		; .shortm, .shortx
+		LDX	!LastTestPatternID
+		LDY	.failCount
+		BNE	.JudgeFail
+.JudgePass
+		LDA.b	#$01
+		STA	!TestResults, X
+		RTS
+
+.JudgeFail
+		LDA.b	#$FF
+		STA	!TestResults, X
+		STA	!DisplayResult
+
+		if !Debug
+		JSR	DebugWait
+		endif
+
+		RTS
+
 NextSubTestPattern:
 		PHP
 		REP	#$31
@@ -870,14 +927,15 @@ NextSubTestPattern:
 		RTS
 
 NextTestPattern:
-%DefineLocal(counter, !ScratchMemory+0, 1)
+%DefineLocal(counter, !ScratchMemory+0, 2)
 
 		REP	#$10
 		SEP	#$20
 		; .shortm, .longx
 
 		LDA.b	#!TestResultCount-1
-		STA	.counter
+		STA	.counter+0
+		STZ	.counter+1
 
 		LDA	!LastTestPatternID
 		INC	A
@@ -886,34 +944,45 @@ NextTestPattern:
 
 		REP	#$70
 		; .longm, .longx, CLV
+
 		LDX.w	#!TestAddressResult
 
-.Loop		LDA	!LastTestPatternID
-		EOR	TestPatternTable, Y
+		LDA	TestPatternTable, Y
+		AND.w	#$00FF
+		BNE	.ValidPattern
+
+.FinishPattern
+		SEP	#$60
+		; .shortm, .longx, SEV
+		LDA	!LastTestPatternID		;\
+		DEC	A				; | revert increment
+		STA	!LastTestPatternID		; |
+		STA	!DisplayTestID			;/
+		RTS
+
+.ValidPattern
+
+.Loop		LDA	TestPatternTable, Y
+		EOR	!LastTestPatternID
 		AND.w	#$00FF
 		BNE	.Clear
 .Copy		LDA	TestPatternTable+0, Y
 		STA	$00, X
-
-		AND.w	#$00FF
-		BNE	.ValidPattern
-		SEP	#$40
-
-.ValidPattern	LDA	TestPatternTable+2, Y
+		LDA	TestPatternTable+2, Y
 		STA	$02, X
 		LDA	TestPatternTable+4, Y
 		STA	$04, X
 		LDA	TestPatternTable+6, Y
 		STA	$06, X
 
-		CLC
-		TXA
-		ADC.w	#$0008
-		TAX
-		;CLC
-		TYA
-		ADC.w	#$0008
-		TAY
+		CLC					;\
+		TXA					; | X += 8
+		ADC.w	#$0008				; |
+		TAX					;/
+		;CLC					;\
+		TYA					; | Y += 8
+		ADC.w	#$0008				; |
+		TAY					;/
 
 		DEC	.counter
 		BPL	.Loop
@@ -945,8 +1014,17 @@ GetTestPatternOffset:
 		BEQ	.Cached
 		STA	!LastTestPatternID
 
+		LDA	!DisplayResult			;\
+		BNE	.SkipUpdateDisplayID		; |
+		LDA	!LastTestPatternID		; |
+		STA	!DisplayTestID			; |
+.SkipUpdateDisplayID					;/
+
 		LDY	!LastTestPatternOffset
-.LoopSearch	INY
+.LoopSearch	LDA	TestPatternTable, Y
+		BEQ	.Finish
+		CMP	!LastTestPatternID
+		BEQ	.Finish
 		INY
 		INY
 		INY
@@ -954,9 +1032,10 @@ GetTestPatternOffset:
 		INY
 		INY
 		INY
-		CMP	TestPatternTable, Y
-		BNE	.LoopSearch
-		STY	!LastTestPatternOffset
+		INY
+		BRA	.LoopSearch
+
+.Finish		STY	!LastTestPatternOffset
 
 .Cached
 		TXA					;\
@@ -985,6 +1064,18 @@ macro	DefineTestPatternLabel(testID, subID, suffix)
 		TestPattern_00<testID>_<subID>_<suffix>:
 	endif
 endmacro
+macro	DefineTestResultLabel(testID)
+	pushpc
+	org	!TestResults+<testID>
+	if <testID> >= 100
+		TestResult_<testID>:	skip 1
+	elseif <testID> >= 10
+		TestResult_0<testID>:	skip 1
+	else
+		TestResult_00<testID>:	skip 1
+	endif
+	pullpc
+endmacro
 macro	NextTestPattern(testID)
 	if !MaxTestPatternID+1 != <testID>
 		; MEMO: warn cannot output multiple outputs.
@@ -992,9 +1083,10 @@ macro	NextTestPattern(testID)
 	endif
 	!MaxTestPatternID	:= <testID>
 	!TestPatternSubID	:= 0
+	%DefineTestResultLabel(<testID>)
 endmacro
 macro	TestPattern(cpu, access, address, expectSave, expectNone)
-	fill align	8
+	fill align	!TestPattern_EntrySize
 	%DefineTestPatternLabel(!MaxTestPatternID, !TestPatternSubID, ID)
 		db	!MaxTestPatternID
 	%DefineTestPatternLabel(!MaxTestPatternID, !TestPatternSubID, Type)
@@ -1005,10 +1097,11 @@ macro	TestPattern(cpu, access, address, expectSave, expectNone)
 		db	<expectSave>
 	%DefineTestPatternLabel(!MaxTestPatternID, !TestPatternSubID, ExpectNone)
 		db	<expectNone>
+	fill align	!TestPattern_EntrySize
 	!TestPatternSubID	#= !TestPatternSubID+1
 endmacro
 
-	skip align	8
+	skip align	!TestPattern_EntrySize
 	fillbyte	$00
 TestPatternTable:
 	incsrc		"TestPattern.asm"

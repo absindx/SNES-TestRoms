@@ -77,8 +77,8 @@ warnings pull
 %DefineRamNext(TestFinished,			1)	; $0000 0=Running, 1=Passed, 255=Failed
 %DefineRamNext(TestingID,			1)	; $0001
 %DefineRamNext(TestSramSize,			3)	; $0002
-%DefineRamNext(DisplayResult,			1)	; $0006 0=Running, 1=Passed, 255=Failed
-%DefineRamNext(DisplayTestID,			1)	; $0007 First failed test ID
+%DefineRamNext(DisplayResult,			1)	; $0005 0=Running, 1=Passed, 255=Failed
+%DefineRamNext(DisplayTestID,			1)	; $0006 First failed test ID
 
 	org	$0080
 %DefineRamNext(ScratchMemory,			16)	; $0080 SNES/SA-1
@@ -110,6 +110,8 @@ warnings pull
 %DefineRamNext(BwramSize,			3)	; $3004
 %DefineRamNext(TestTargetAddress,		3)	; $3007
 %DefineRamNext(Sa1Booted,			1)	; $300A
+	org	!SA1_IRamImage+$042
+%DefineRamNext(TestIRamWriteTarget,		1)	; $3042
 
 ;--------------------------------------------------
 ; Test pattern
@@ -156,6 +158,8 @@ endmacro
 %DefineTestResult(11)	; TestResult_11_*
 %DefineRamNext(TestResultSentinel,			1)	; $3260 Always zero
 
+	org	$0200
+%DefineRamNext(TestResults,			256)
 
 ;--------------------------------------------------
 
