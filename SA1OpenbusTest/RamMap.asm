@@ -105,11 +105,12 @@ warnings pull
 
 	org	!SA1_IRamImage+$000
 %DefineRamNext(LastTestPatternID,		1)	; $3000
-%DefineRamNext(LastTestPatternOffset,		2)	; $3001
-%DefineRamNext(BwramExist,			1)	; $3003 0=Exist, 1=None
-%DefineRamNext(BwramSize,			3)	; $3004
-%DefineRamNext(TestTargetAddress,		3)	; $3007
-%DefineRamNext(Sa1Booted,			1)	; $300A
+%DefineRamNext(LastTestPatternOffset,		2)	; $3001 TestPatternTable offset
+%DefineRamNext(LastTestResultOffset,		2)	; $3003 !TestAddressResult offset
+%DefineRamNext(BwramExist,			1)	; $3005 0=None, 1=Exist
+%DefineRamNext(BwramSize,			3)	; $3006
+%DefineRamNext(TestTargetAddress,		3)	; $3009
+%DefineRamNext(Sa1Booted,			1)	; $300C
 	org	!SA1_IRamImage+$042
 %DefineRamNext(TestIRamWriteTarget,		1)	; $3042
 
@@ -143,6 +144,16 @@ macro DefineTestResult(index)
 	%DefineRamNext(TestResult_<index>_Actual,	1)	; +$07 Actual value
 	!TestResultCount	#= !TestResultCount+1
 endmacro
+
+!TestResultOffset_ID		= $00
+!TestResultOffset_Type		= $01
+!TestResultOffset_Address	= $02
+!TestResultOffset_ExpectSave	= $05
+!TestResultOffset_ExpectNone	= $06
+!TestResultOffset_Actual	= $07
+!TestResultOffset_WriteValue	= $05
+!TestResultTypeMask_Cpu		= $F0
+!TestResultTypeMask_Access	= $0F
 
 %DefineTestResult(00)	; TestResult_00_*
 %DefineTestResult(01)	; TestResult_01_*

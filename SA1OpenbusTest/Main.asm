@@ -684,9 +684,9 @@ endif
 		; Initialize SA-1
 		JSR	InitializeSA1
 		JSR	ScreenOn
-		JSR	TestSnesInitialize
 		JSR	TestSa1Initialize		;   boot SA-1
 		JSR	WaitSa1Boot
+		JSR	TestSnesInitialize
 		JSR	TestMainloop
 		;JSR	TestSnesExecute
 

@@ -184,6 +184,9 @@ WriteTestPatternsLine:
 		BCC	.WriteBlank
 		RTS
 
+; WriteTestPattern subroutines interface:
+;   Y: TestPattern drawing offset
+
 WriteTestPattern_Cpu:
 		LDA	!TestResult_00_Type, Y
 		LSR
@@ -278,13 +281,20 @@ WriteTestPattern_Expected:
 		LDA.b	#'$'
 		STA	!WRAM_WMDATA
 
-		CLC
-		TYA
-		ADC	!BwramExist
+		TYX
+		LDA	!TestResult_00_Type, Y
+		AND.b	#!TestResultTypeMask_Access
+		CMP.b	#!TestPattern_Access_Read
+		BNE	.Write
+
+.Read		LDA	!BwramExist			;\
+		BNE	.HasBwram			; | read offset.ExpectSave or offset.ExpectNone
+.NoBwram	INX					; |   offset.ExpectSave + !BwramExist (0 or 1)
+.HasBwram						; |
+.Write		LDA	!TestResult_00_ExpectSave, X	;/
 		TAX
-		LDA	!TestResult_00_ExpectSave, X
-		TAX
-		LDA	HexAsciiHighNibble, X
+
+.Draw		LDA	HexAsciiHighNibble, X
 		STA	!WRAM_WMDATA
 		LDA	HexAsciiLowNibble, X
 		STA	!WRAM_WMDATA
@@ -484,10 +494,10 @@ SA1ProcessMessage:
 		RTS
 
 .MessageTable
-		dw	SA1Message_TestExecute		; #0
-		dw	SA1Message_NOP			; #1
-		dw	SA1Message_NOP			; #2
-		dw	SA1Message_NOP			; #3
+		dw	SA1Message_ResetStatus		; #0
+		dw	SA1Message_ExecuteWAI		; #1
+		dw	SA1Message_ExecuteSTP		; #2
+		dw	SA1Message_TestExecute		; #3
 		dw	SA1Message_NOP			; #4
 		dw	SA1Message_NOP			; #5
 		dw	SA1Message_NOP			; #6
@@ -502,6 +512,18 @@ SA1ProcessMessage:
 		dw	SA1Message_NOP			; #15
 
 SA1Message_NOP:
+		RTS
+
+SA1Message_ResetStatus:
+		%SendSA1Message(!Message_SA1_SNES_Running, 0)
+		JMP	ResetSa1Status
+
+SA1Message_ExecuteWAI:
+		; TODO: Implements
+		RTS
+
+SA1Message_ExecuteSTP:
+		; TODO: Implements
 		RTS
 
 SA1Message_TestExecute:
@@ -704,54 +726,6 @@ WaitSa1TestPattern:
 		BNE	.LoopIdle
 		RTS
 
-
-;; Argument:
-;;   !TestAddressPointer
-;;   !TestResultPointer
-;;   !TestAccessPointer = #$AA00
-;; Effect:
-;;   !TestResultPointer = +4
-;;   !TestCalculatePointer
-;TestAddressRead:
-;		; .shortm, .longx
-;		PHB
-;
-;		SEC					;\
-;		LDA	!TestAddressPointerL		; |
-;		SBC.b	#$00				; | ScratchMemory[6-8] = ScratchMemory[0-2] - #$00AA00
-;		STA	!TestCalculatePointerL		; |
-;		LDA	!TestAddressPointerH		; |
-;		SBC.b	#!SnesOpenBusValue		; |
-;		STA	!TestCalculatePointerH		; |
-;		LDA	!TestAddressPointerB		; |
-;		SBC.b	#$00				; |
-;		STA	!TestCalculatePointerB		;/
-;
-;		LDY	!TestCalculatePointer
-;
-;		%SetSa1Databus(!Sa1OpenBusValue1)
-;		LDA	!TestAddressPointerB
-;		PHA
-;		PLB
-;		LDA	(!TestAddressPointer)
-;		STA	[!TestResultPointer]
-;		INC.b	!TestResultPointerL
-;
-;		%SetSa1Databus(!Sa1OpenBusValue1)
-;		LDA	!TestCalculatePointerB
-;		PHA
-;		PLB
-;		LDA	(!TestAccessPointer), Y
-;		STA	[!TestResultPointer]
-;		PLB
-;
-;		CLC
-;		LDA	!TestResultPointerL
-;		ADC.b	#3
-;		STA	!TestResultPointerL
-;
-;		RTS
-
 ;--------------------------------------------------
 
 TestSnesInitialize:
@@ -765,6 +739,7 @@ TestSnesInitialize:
 		STA	!LastTestPatternID
 		LDX.w	#0
 		STX	!LastTestPatternOffset
+		STX	!LastTestResultOffset
 
 		JSR	NextTestPattern
 
@@ -784,8 +759,8 @@ TestMainloop:
 		REP	#$10
 		; .shortm, .longx
 
-		LDX	!LastTestPatternOffset
-		LDA	!TestAddressResult, X
+		LDX	!LastTestResultOffset
+		LDA	!TestAddressResult+!TestResultOffset_ID, X
 		BNE	.ValidPattern
 .JudgePattern
 		JSR	JudgeTestPattern
@@ -794,7 +769,9 @@ TestMainloop:
 		JMP	TestPatternFinished
 
 .ValidPattern
-		CMP.b	!TestPattern_CPU_SNES
+		LDA	!TestAddressResult+!TestResultOffset_Type, X
+		AND.b	#!TestResultTypeMask_Cpu
+		CMP.b	#(!TestPattern_CPU_SNES<<4)
 		BNE	.PatternSa1
 
 .PatternSnes
@@ -809,6 +786,9 @@ TestMainloop:
 		BRA	.TestLoop
 
 TestPatternFinished:
+		SEP	#$20
+		; .shortm
+
 		LDA	!DisplayResult
 		BNE	.SkipPass
 		LDA.b	#$01
@@ -817,47 +797,86 @@ TestPatternFinished:
 
 		RTS
 
+UpdateDisplayID:
+		; .shortm
+		LDA	!DisplayResult
+		BNE	.Skip
+		LDA	!LastTestPatternID
+		STA	!DisplayTestID
+.Skip
+		RTS
+
+ResetSnesStatus:
+		REP	#$10
+		SEP	#$20
+		; .shortm, .longx
+
+		STZ	!SA1_BMAP			;   BW-RAM address mapping
+		LDA.b	#$80				;\  BW-RAM write enable
+		STA	!SA1_SBWE			;/    $80 = write enable
+		LDA.b	#$FF				;\  I-RAM write enable
+		STA	!SA1_SIWP			;/
+
+		RTS
+
+ResetSa1Status:
+		REP	#$10
+		SEP	#$20
+		; .shortm, .longx
+
+		STZ	!SA1_BMAP			;   BW-RAM address mapping
+							;     $00 = $400000-$401FFF
+		LDA.b	#$80				;\  BW-RAM write enable
+		STA	!SA1_CBWE			;/    $80 = write enable
+		STZ	!SA1_BWPA			;   BW-RAM write protected area
+							;     $00 = $400000-$4000FF
+		LDA.b	#$FF				;\  I-RAM write enable
+		STA	!SA1_CIWP			;/
+		LDA.b	#$80				;\  BW-RAM bitmap format
+		STA	!SA1_BBF			;/    $80 = 16 color mode (4 bits)
+		STZ	!SA1_MCNT			;   arithmetic control
+							;     $00 = multiplication (MR5 = openbus)
+
+
+		LDA.b	#$00				;
+		STA	!SA1_BWRam+0			;
+		STA	!SA1_BWRam+1			;
+
+		RTS
 
 ; Argument:
 ;   A = TestID
 TestSa1Execute:
-		; TODO: Implements
-		RTS
-
-		REP	#$30
-		; .longm, .longx
-		AND.w	#$00FF
-		DEC	A
-
-;		CMP.w	#!TestDefinedMax
-;		BCC	+
-;		JMP	SA1TestFinished
-;+		ASL
-;		ASL
-;		TAX
-;		LDX.w	#$0000
-;		JMP	(TestHandlerTable, X)
+		JMP	TestExecuteMain
 
 TestSnesExecute:
-		; TODO: Implements
-		RTS
+		JMP	TestExecuteMain
 
+TestExecuteMain:
 		REP	#$30
 		; .longm, .longx
-;		LDA	!TestingID
-;		AND.w	#$00FF
-;		DEC	A
-;		ASL
-;		ASL					; CLC
-;		ADC.w	#$02
-;		TAX
-;		LDX.w	#$0000
-;		JMP	(TestHandlerTable, X)
 
-;TestHandlerTable:
-;		pushpc
-;		dw	TestSA1_001, TestSNES_001
-;		pullpc
+		LDX	!LastTestResultOffset
+		LDA	!TestAddressResult+!TestResultOffset_Address+0, X
+		STA	!TestAddressPointer+0
+		LDA	!TestAddressResult+!TestResultOffset_Address+1, X
+		STA	!TestAddressPointer+1
+
+		SEP	#$20
+		; .shortm, .longx
+		LDA	!TestAddressResult+!TestResultOffset_Type, X
+		AND.b	#!TestResultTypeMask_Access
+		CMP.b	#!TestPattern_Access_Read
+		BNE	.Write
+.Read
+		LDA	[!TestAddressPointer]
+		STA	!TestAddressResult+!TestResultOffset_Actual, X
+		RTS
+
+.Write
+		LDA	!TestAddressResult+!TestResultOffset_WriteValue, X
+		STA	[!TestAddressPointer]
+		RTS
 
 
 JudgeTestPattern:
@@ -872,24 +891,30 @@ JudgeTestPattern:
 
 		TDC
 		;SEC
-		LDA.b	#(!TestResult_00_ExpectNone-TestResult_00_ID)
+		LDA.b	#!TestResultOffset_ExpectNone
 		SBC	!BwramExist
 		TAX
 
-.LoopEntry	LDY.w	#(!TestResult_00_ID-TestResult_00_ID)
-		LDA	(.basePointer), Y
-		BEQ	.Return
+.LoopEntry	LDY.w	#!TestResultOffset_ID		;\
+		LDA	(.basePointer), Y		; | check test pattern end
+		BEQ	.Return				;/
 
-		LDY.w	#(!TestResult_00_Actual-TestResult_00_ID)
-		LDA	(.basePointer), Y
-		TXY
-		CMP	(.basePointer), Y
-		BEQ	.DetectPass
+		LDY.w	#!TestResultOffset_Type		;\
+		LDA	(.basePointer), Y		; | check only read access
+		AND.b	#!TestResultTypeMask_Access	; |
+		CMP.b	#!TestPattern_Access_Read	; |
+		BNE	.DetectPass			;/
+
+		LDY.w	#!TestResultOffset_Actual	;\
+		LDA	(.basePointer), Y		; | compare
+		TXY					; |
+		CMP	(.basePointer), Y		; |
+		BEQ	.DetectPass			;/
 .DetectFail	INC	.failCount
-.DetectPass	CLC
-		LDA	.basePointer
-		ADC.b	#!TestPattern_EntrySize
-		STA	.basePointer
+.DetectPass	CLC					;\
+		LDA	.basePointer			; | .basePointer += 8
+		ADC.b	#!TestPattern_EntrySize		; |
+		STA	.basePointer			;/
 		BRA	.LoopEntry
 
 .Return
@@ -919,13 +944,19 @@ NextSubTestPattern:
 		REP	#$31
 		; .longm, .longx, CLC
 
-		LDA	!LastTestPatternOffset
-		ADC.w	#0008
-		STA	!LastTestPatternOffset
+		LDA	!LastTestPatternOffset		;\
+		ADC.w	#!TestPattern_EntrySize		; | +8
+		STA	!LastTestPatternOffset		;/
+		CLC					;\
+		LDA	!LastTestResultOffset		; |
+		ADC.w	#!TestPattern_EntrySize		; | +8
+		STA	!LastTestResultOffset		;/
 
 		PLP
 		RTS
 
+; Return:
+;   P.V = test pattern finished flag (0=continue, 1=finished)
 NextTestPattern:
 %DefineLocal(counter, !ScratchMemory+0, 2)
 
@@ -941,9 +972,12 @@ NextTestPattern:
 		INC	A
 		LDX.w	#0
 		JSR	GetTestPatternOffset
+		JSR	UpdateDisplayID
 
 		REP	#$70
 		; .longm, .longx, CLV
+
+		STZ	!LastTestResultOffset
 
 		LDX.w	#!TestAddressResult
 
@@ -957,7 +991,7 @@ NextTestPattern:
 		LDA	!LastTestPatternID		;\
 		DEC	A				; | revert increment
 		STA	!LastTestPatternID		; |
-		STA	!DisplayTestID			;/
+		JSR	UpdateDisplayID			;/
 		RTS
 
 .ValidPattern
@@ -1000,6 +1034,13 @@ NextTestPattern:
 
 		DEC	.counter
 		BPL	.ClearLoop
+
+		SEP	#$30
+		; .shortx, .shortx
+		%SendSnesMessage(!Message_SNES_SA1_ResetStatus, 1)
+		JSR	ResetSnesStatus
+		JSR	WaitSa1TestPattern
+		CLV
 		RTS
 
 ; Argument:
@@ -1013,12 +1054,6 @@ GetTestPatternOffset:
 		CMP	!LastTestPatternID
 		BEQ	.Cached
 		STA	!LastTestPatternID
-
-		LDA	!DisplayResult			;\
-		BNE	.SkipUpdateDisplayID		; |
-		LDA	!LastTestPatternID		; |
-		STA	!DisplayTestID			; |
-.SkipUpdateDisplayID					;/
 
 		LDY	!LastTestPatternOffset
 .LoopSearch	LDA	TestPatternTable, Y
