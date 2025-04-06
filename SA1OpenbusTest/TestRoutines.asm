@@ -132,7 +132,7 @@ WriteTestID:
 		RTS
 
 WriteTestPatternsLine:
-%DefineLocal(access, !ScratchMemory+0, 1)
+%DefineLocal(access, !NmiScratchMemory+0, 1)
 		REP	#$11
 		SEP	#$20
 		; .shortm, .longx, CLC
@@ -210,7 +210,7 @@ WriteTestPattern_Cpu:
 		db	"SA-1"
 
 WriteTestPattern_Access:
-%DefineLocal(access, !ScratchMemory+0, 1)
+%DefineLocal(access, !NmiScratchMemory+0, 1)
 		LDA	!TestResult_00_Type, Y
 		AND.b	#$0F
 		STA	.access				;\
@@ -265,7 +265,7 @@ WriteTestPattern_Address:
 		RTS
 
 WriteTestPattern_Direction:
-%DefineLocal(access, !ScratchMemory+0, 1)
+%DefineLocal(access, !NmiScratchMemory+0, 1)
 		LDA	.access
 		TAX					; because X.H = $00
 		LDA	.Data, X
@@ -302,7 +302,7 @@ WriteTestPattern_Expected:
 		RTS
 
 WriteTestPattern_Actual:
-%DefineLocal(access, !ScratchMemory+0, 1)
+%DefineLocal(access, !NmiScratchMemory+0, 1)
 		LDA	.access
 		CMP.b	#!TestPattern_Access_Read
 		BNE	.Write
@@ -450,6 +450,8 @@ endmacro
 macro	SendSnesMessage(messageType, irq)
 		; SNES -> SA-1 IRQ
 		; .shortm
+		JSR	NmiOff
+		STZ	!Sa1IrqProcessing
 		LDA.b	#(<irq><<7)+(<messageType>&$0F)
 		STA	!SA1_CCNT
 endmacro
@@ -484,6 +486,9 @@ SA1TestMain:
 
 
 SA1ProcessMessage:
+		LDA.b	#$01
+		STA	!Sa1IrqProcessing
+
 		LDA	!SA1_CFR			;\  process message from SNES-CPU
 		AND.b	#$0F				;/
 		ASL
@@ -716,14 +721,19 @@ WaitSa1Boot:
 
 WaitSa1TestPattern:
 		; .shortm
-.LoopProcess	LDA	!SA1_SFR
-		AND.b	#$0F
-		CMP.b	#!Message_SA1_SNES_Idle
+		PHP
+		SEI
+		JSR	NmiOff
+.LoopProcess	LDA	Sa1IrqProcessing		;\  !SA1_SFR
+							; | AND.b	#$0F
+							;/  CMP.b	#!Message_SA1_SNES_Idle
 		BEQ	.LoopProcess
 .LoopIdle	LDA	!SA1_SFR
 		AND.b	#$0F
 		CMP.b	#!Message_SA1_SNES_Idle
 		BNE	.LoopIdle
+		JSR	NmiOn
+		PLP
 		RTS
 
 ;--------------------------------------------------
@@ -811,11 +821,14 @@ ResetSnesStatus:
 		SEP	#$20
 		; .shortm, .longx
 
-		STZ	!SA1_BMAP			;   BW-RAM address mapping
+		STZ	!SA1_BMAPS			;   BW-RAM address mapping
 		LDA.b	#$80				;\  BW-RAM write enable
 		STA	!SA1_SBWE			;/    $80 = write enable
 		LDA.b	#$FF				;\  I-RAM write enable
 		STA	!SA1_SIWP			;/
+
+		LDA.b	#$00				;\  set W-RAM
+		STA	$000800				;/
 
 		RTS
 
@@ -838,9 +851,11 @@ ResetSa1Status:
 							;     $00 = multiplication (MR5 = openbus)
 
 
-		LDA.b	#$00				;
-		STA	!SA1_BWRam+0			;
-		STA	!SA1_BWRam+1			;
+		LDA.b	#$00				;\
+		STA	!SA1_BWRam+0			; | set BW-RAM openbus value ($00)
+		STA	!SA1_BWRam+1			; |
+		STA	!SA1_BWRam+2			; |
+		STA	!SA1_BWRam+3			;/
 
 		RTS
 
@@ -886,8 +901,17 @@ JudgeTestPattern:
 		SEP	#$21
 		; .shortm, .longx, SEC
 
+		if !Debug				;\
+		LDA.b	#'O'				; | set initial debug output
+		LDX.w	#!TestResultCount-1		; |
+-		STA	!TilemapBuffer+$0162, X		; |
+		DEX					; |
+		BPL	-				; |
+		endif					;/
+
 		LDX.w	#!TestAddressResult
 		STX	.basePointer
+		STZ	.failCount
 
 		TDC
 		;SEC
@@ -911,6 +935,16 @@ JudgeTestPattern:
 		CMP	(.basePointer), Y		; |
 		BEQ	.DetectPass			;/
 .DetectFail	INC	.failCount
+		if !Debug				;\
+		LDA	.basePointer			; | set debug result
+		LSR	A				; |
+		LSR	A				; |
+		LSR	A				; |
+		TAY					; |
+		LDA.b	#'X'				; |
+		STA	!TilemapBuffer+$0162, Y		; |
+		endif					;/
+
 .DetectPass	CLC					;\
 		LDA	.basePointer			; | .basePointer += 8
 		ADC.b	#!TestPattern_EntrySize		; |
@@ -1037,8 +1071,8 @@ NextTestPattern:
 
 		SEP	#$30
 		; .shortx, .shortx
-		%SendSnesMessage(!Message_SNES_SA1_ResetStatus, 1)
 		JSR	ResetSnesStatus
+		%SendSnesMessage(!Message_SNES_SA1_ResetStatus, 1)
 		JSR	WaitSa1TestPattern
 		CLV
 		RTS
@@ -1134,6 +1168,10 @@ macro	TestPattern(cpu, access, address, expectSave, expectNone)
 		db	<expectNone>
 	fill align	!TestPattern_EntrySize
 	!TestPatternSubID	#= !TestPatternSubID+1
+	if !TestPatternSubID >= !TestResultCount
+		; MEMO: warn cannot output multiple outputs.
+		print "Test pattern entries exceeded. TestID = ", dec(!MaxTestPatternID), ", SubID =  ", dec(!TestPatternSubID)
+	endif
 endmacro
 
 	skip align	!TestPattern_EntrySize

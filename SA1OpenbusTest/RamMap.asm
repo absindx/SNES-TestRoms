@@ -55,6 +55,7 @@ pushpc
 %DefineRamNext(PpuMirror_CGADSUB,		1)	; $1E49 : !SystemMemory+41
 %DefineRamNext(PpuMirror_COLDATA,		2)	; $1E4A : !SystemMemory+42
 %DefineRamNext(PpuMirror_SETINI,		1)	; $1E4C : !SystemMemory+44
+%DefineRamNext(CpuMirror_NMITIMEN,		1)	; $1E4D : !SystemMemory+45
 
 %DefineRam(VramBuffer,				$7F0000, $2000)
 %DefineRam(PaletteBuffer,			$7F0000, 512)	; Temporary buffer
@@ -80,6 +81,8 @@ warnings pull
 %DefineRamNext(DisplayResult,			1)	; $0005 0=Running, 1=Passed, 255=Failed
 %DefineRamNext(DisplayTestID,			1)	; $0006 First failed test ID
 
+	org	$00F8
+%DefineRamNext(NmiScratchMemory,		8)	; $00F8 SNES(NMI)
 	org	$0080
 %DefineRamNext(ScratchMemory,			16)	; $0080 SNES/SA-1
 	;org	$0090
@@ -111,8 +114,7 @@ warnings pull
 %DefineRamNext(BwramSize,			3)	; $3006
 %DefineRamNext(TestTargetAddress,		3)	; $3009
 %DefineRamNext(Sa1Booted,			1)	; $300C
-	org	!SA1_IRamImage+$042
-%DefineRamNext(TestIRamWriteTarget,		1)	; $3042
+%DefineRamNext(Sa1IrqProcessing,		1)	; $300D
 
 ;--------------------------------------------------
 ; Test pattern
@@ -122,6 +124,12 @@ warnings pull
 
 !TestPattern_Access_Read	= 1
 !TestPattern_Access_Write	= 2
+
+warnings push
+warnings disable W1009
+%DefineRam(TestIRamWriteTarget,			!SA1_IRamImage+$042, 1)	; $3042
+%DefineRam(TestBWRamWriteTarget,		!SA1_BWRam+$042,     1)	; $400042
+warnings pull
 
 	org	!SA1_IRamImage+$200
 %DefineRamNext(TestAddressResult,		1)	; $3200

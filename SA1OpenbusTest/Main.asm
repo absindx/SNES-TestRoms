@@ -444,9 +444,9 @@ DebugWait:
 		JSR	UpdateScreen
 		JSR	ScreenOn
 .LoopWait	WAI
-		JSR	ScreenOn
+		JSR	NmiOn
 		JSR	UpdateJoypad
-		BIT	JoypadPress+0
+		BIT	JoypadPress+0			;   press A
 		BPL	.LoopWait
 		STZ	!DisplayResult
 		PLP
@@ -565,7 +565,10 @@ ScreenOff:
 		SEP	#$20
 		; .shortm
 
-		LDA.b	#%00000001			;\  Disable NMI, Joypad auto-read
+		;JSR	NmiOff				;\
+		LDA	!CpuMirror_NMITIMEN		; | Disable NMI, Joypad auto-read
+		AND.b	#%01111111			; |
+		STA	!CpuMirror_NMITIMEN		; |
 		STA	!CPU_NMITIMEN			;/
 
 		LDA.b	#$8F
@@ -624,9 +627,29 @@ ScreenOn:
 		%SetMirroPPU(BG34NBA)
 		%SetMirroPPU(SETINI)
 
-		LDA.b	#%10000001			;\  Enable NMI, Joypad auto-read
+		;JSR	NmiOn				;\
+		LDA	!CpuMirror_NMITIMEN		; | Enable NMI, Joypad auto-read
+		ORA.b	#%10000000			; |
+		STA	!CpuMirror_NMITIMEN		; |
 		STA	!CPU_NMITIMEN			;/
 
+		PLP
+		RTS
+
+NmiOff:
+		PHP
+		SEP	#$20
+		LDA.b	#%10000000
+		TRB	!CpuMirror_NMITIMEN
+		PLP
+		RTS
+
+NmiOn:
+		; TODO: do not turn on when screen is off
+		PHP
+		SEP	#$20
+		LDA.b	#%10000000
+		TSB	!CpuMirror_NMITIMEN
 		PLP
 		RTS
 
@@ -672,6 +695,9 @@ endif
 
 		LDX.b	#%00000000
 		STX	!PpuMirror_SETINI
+
+		LDX.b	#%00000001			;\  Joypad auto-read
+		STX	!CpuMirror_NMITIMEN		;/
 
 		JSR	TransferPalette_PalMain
 		JSR	TransferGraphics_Font
