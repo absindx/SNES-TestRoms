@@ -828,7 +828,8 @@ ResetSnesStatus:
 		STA	!SA1_SIWP			;/
 
 		LDA.b	#$00				;\  set W-RAM
-		STA	$000800				;/
+		STA	$000800				; | (SA-1 side BW-RAM openbus address)
+		STA	$000801				;/
 
 		RTS
 
@@ -850,12 +851,16 @@ ResetSa1Status:
 		STZ	!SA1_MCNT			;   arithmetic control
 							;     $00 = multiplication (MR5 = openbus)
 
+		LDA.b	#$00				;\
+		STA	!TestIRamWriteTarget		; | set test memory
+		STA	!TestBWRamWriteTarget		;/
 
 		LDA.b	#$00				;\
-		STA	!SA1_BWRam+0			; | set BW-RAM openbus value ($00)
-		STA	!SA1_BWRam+1			; |
+		STA	!SA1_BWRam+3			; | set BW-RAM value, openbus value
 		STA	!SA1_BWRam+2			; |
-		STA	!SA1_BWRam+3			;/
+		STA	!SA1_BWRam+1			; |   BW-RAM openbus[1] = $00
+		STA	!SA1_BWRam+0			;/    BW-RAM openbus[0] = $00, BW-RAM last address = $400000
+
 
 		RTS
 

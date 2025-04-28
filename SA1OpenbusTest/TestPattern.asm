@@ -11,8 +11,9 @@ includeonce
 ;   ResetSnesStatus:
 ;   ResetSa1Status:
 ;   (internal status)
-;     BW-RAM openbus = $0000
-;     BW-RAM latch   = 0 (even)		* TODO: even/odd status still seems inaccurate
+;     BW-RAM openbus[0]   = $00
+;     BW-RAM openbus[1]   = $00
+;     BW-RAM last address = $400000
 ;
 ; The test pattern is defined by the following macro
 ;   %NextTestPattern(<testID>)
@@ -44,328 +45,418 @@ includeonce
 
 ;--------------------------------------------------
 
+	;--------------------------------------------------
+	; Basic
+
 	%NextTestPattern(1)							; SA-1: Basic
 		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (odd)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always even ?)
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
 		%TestPattern(SA_1,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Read,   $400000, $AA, $AA)			;   (repeat)
 
 	%NextTestPattern(2)							; SNES: Basic
 		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (odd)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always even ?)
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400003 -> $400000
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
 		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   (repeat)
 
-	%NextTestPattern(3)							; SA-1: Write BW-RAM address (even)
+	;--------------------------------------------------
+	; SA-1 Write BW-RAM address
+
+	%NextTestPattern(3)							; SA-1: Write BW-RAM address (same -> same address: $400000 -> $400000 -> $400000)
 		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus.H ($00)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   (repeat)
+		%TestPattern(SA_1,Read,   $000801, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Read,   $000801, $AA, $AA)			;   (repeat)
+		%TestPattern(SA_1,Write,  $400000, $BB, !__)			;   SRAM      : BW-RAM $400000 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   (repeat)
+		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   (repeat)
+
+	%NextTestPattern(4)							; SA-1: Write BW-RAM address (different -> same address: $400000 -> $400001 -> $400001)
+		%TestPattern(SA_1,Write,  $400001, $AA, !__)			;   SRAM      : BW-RAM $400001 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $00], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
 		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   (repeat)
-		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   SRAM      : return BW-RAM openbus.H ($00)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   (repeat)
+		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400001 -> $400001 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   (repeat)
+		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   (repeat)
+
+	%NextTestPattern(5)							; SA-1: Write BW-RAM address (different -> different address: $400000 -> $400001 -> $400000)
+		%TestPattern(SA_1,Write,  $400001, $AA, !__)			;   SRAM      : BW-RAM $400001 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $00], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   (repeat)
+		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
 		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   (repeat)
 		%TestPattern(SA_1,Write,  $400000, $BB, !__)			;   SRAM      : BW-RAM $400000 = $BB
-										;   SRAM      : BW-RAM openbus = $00BB, BW-RAM latch = 0 (L)  * write: L -> L
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   SRAM      : return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   (repeat)
-		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   SRAM      : return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   (repeat)
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400001 -> $400000
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   (repeat)
+		%TestPattern(SA_1,Read,   $000801, $AA, $BB)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Read,   $000801, $AA, $BB)			;   (repeat)
 
-	; TODO: fails with BW-RAM, there are more detailed status
-	%NextTestPattern(4)							; SA-1: Write BW-RAM address (odd, latch = 1)
-		%TestPattern(SA_1,Write,  $400001, $AA, !__)			;   SRAM      : BW-RAM $400001 = $AA
-										;   SRAM      : BW-RAM openbus = $AA00, BW-RAM latch = 1 (H)  * write: H -> H
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus.H ($AA)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   (repeat)
-		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   SRAM      : return BW-RAM openbus.H ($00)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   (repeat)
-		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $BB00, BW-RAM latch = 1 (H)  * write: H -> H
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   SRAM      : return BW-RAM openbus.H ($BB)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   (repeat)
-		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   SRAM      : return BW-RAM openbus.H ($BB)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   (repeat)
-
-
-
-	%NextTestPattern(5)							; SA-1: Write BW-RAM address (odd, latch = 0)
-		%TestPattern(SA_1,Write,  $400000, $00, !__)			;   SRAM      : BW-RAM $400000 = $00
-										;   SRAM      : BW-RAM openbus = $0000, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $0000, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Write,  $400001, $AA, !__)			;   SRAM      : BW-RAM $400001 = $AA
-										;   SRAM      : BW-RAM openbus = $AA00, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus.L ($00)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   (repeat)
-		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   SRAM      : return BW-RAM openbus.L ($00)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000801, $00, $AA)			;   (repeat)
-		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $BB00, BW-RAM latch = 1 (H)  * write: H -> H
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   SRAM      : return BW-RAM openbus.H ($BB)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   (repeat)
-		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   SRAM      : return BW-RAM openbus.H ($BB)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Read,   $000801, $BB, $BB)			;   (repeat)
-
-	%NextTestPattern(6)							; SA-1: Write BW-RAM address (alternating)
+	%NextTestPattern(6)							; SA-1: Write BW-RAM address (alternate address: $400000 -> $400000 -> $400001 -> $40000 -> $400001)
 		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus.H ($00)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
 		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $BBAA, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($BB)
 		%TestPattern(SA_1,Write,  $400000, $CC, !__)			;   SRAM      : BW-RAM $400000 = $CC
-										;   SRAM      : BW-RAM openbus = $BBCC, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00CC, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus.H ($BB)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400001 -> $400000
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
 		%TestPattern(SA_1,Write,  $400001, $DD, !__)			;   SRAM      : BW-RAM $400001 = $DD
-										;   SRAM      : BW-RAM openbus = $DDCC, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00DD, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $CC, $DD)			;   SRAM      : return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($DD)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $CC, $DD)			;   SRAM      : return BW-RAM openbus[1] ($CC)
+										;         None: return BW-RAM openbus[1] ($DD)
 
-	%NextTestPattern(7)							; SA-1: Write BW-RAM address (increment)
+	%NextTestPattern(7)							; SA-1: Write BW-RAM address (even address: $400000 -> $400000 -> $400002 -> $40000 -> $400002)
 		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus.H ($00)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $BBAA, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SA_1,Write,  $400002, $CC, !__)			;   SRAM      : BW-RAM $400002 = $CC
-										;   SRAM      : BW-RAM openbus = $BBCC, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00CC, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus.H ($BB)   * BW-RAM latch = 1
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Write,  $400002, $BB, !__)			;   SRAM      : BW-RAM $400002 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400000 -> $400002
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Write,  $400000, $CC, !__)			;   SRAM      : BW-RAM $400000 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400002 -> $400000
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SA_1,Write,  $400002, $DD, !__)			;   SRAM      : BW-RAM $400002 = $DD
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400000 -> $400002
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $CC, $DD)			;   SRAM      : return BW-RAM openbus[1] ($CC)
+										;         None: return BW-RAM openbus[1] ($DD)
+
+	%NextTestPattern(8)							; SA-1: Write BW-RAM address (odd address: $400000 -> $400001 -> $400003 -> $40001 -> $400003)
+		%TestPattern(SA_1,Write,  $400001, $AA, !__)			;   SRAM      : BW-RAM $400001 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $00], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Write,  $400003, $BB, !__)			;   SRAM      : BW-RAM $400003 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400001 -> $400003
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Write,  $400001, $CC, !__)			;   SRAM      : BW-RAM $400001 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400003 -> $400001
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
 		%TestPattern(SA_1,Write,  $400003, $DD, !__)			;   SRAM      : BW-RAM $400003 = $DD
-										;   SRAM      : BW-RAM openbus = $DDCC, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00DD, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SA_1,Read,   $000800, $CC, $DD)			;   SRAM      : return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
-										;         None: return BW-RAM openbus.L ($DD)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400001 -> $400003
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $CC, $DD)			;   SRAM      : return BW-RAM openbus[1] ($CC)
+										;         None: return BW-RAM openbus[1] ($DD)
 
-	%NextTestPattern(8)							; SNES: Write BW-RAM address (even)
-		%TestPattern(SNES,Write,  $000800, $11, !__)			;   SRAM, None: W-RAM $7E0800 = $00
-		%TestPattern(SNES,Write,  $000801, $22, !__)			;   SRAM, None: W-RAM $7E0801 = $00
+	%NextTestPattern(9)							; SA-1: Write BW-RAM address (increment address: $400000 -> $400000 -> $400001 -> $400002 -> $40003)
+		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Write,  $400002, $CC, !__)			;   SRAM      : BW-RAM $400002 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400001 -> $400002
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SA_1,Write,  $400003, $DD, !__)			;   SRAM      : BW-RAM $400003 = $DD
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400002 -> $400003
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $CC, $DD)			;   SRAM      : return BW-RAM openbus[1] ($CC)
+										;         None: return BW-RAM openbus[1] ($DD)
+
+	%NextTestPattern(10)							; SA-1: Write BW-RAM address (decrement address: $400000 -> $400003 -> $400002 -> $400001 -> $40000)
+		%TestPattern(SA_1,Write,  $400003, $AA, !__)			;   SRAM      : BW-RAM $400003 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $00], BW-RAM last address = $400000 -> $400003
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $00, $AA)			;   SRAM      : return BW-RAM openbus[1] ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Write,  $400002, $BB, !__)			;   SRAM      : BW-RAM $400002 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400003 -> $400002
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($BB)
+		%TestPattern(SA_1,Write,  $400001, $CC, !__)			;   SRAM      : BW-RAM $400001 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400002 -> $400001
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SA_1,Write,  $400000, $DD, !__)			;   SRAM      : BW-RAM $400000 = $DD
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400001 -> $400000
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $CC, $DD)			;   SRAM      : return BW-RAM openbus[1] ($CC)
+										;         None: return BW-RAM openbus[1] ($DD)
+
+	%NextTestPattern(11)							; SA-1: Read other BW-RAM address
+		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Write,  $400002, $CC, !__)			;   SRAM      : BW-RAM $400002 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400001 -> $400002
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $400000, $AA, $CC)			;   SRAM      : return BW-RAM $400000 ($AA)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SA_1,Read,   $400001, $BB, $CC)			;   SRAM      : return BW-RAM $400001 ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;   SRAM      : return BW-RAM openbus[1] ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
+
+	%NextTestPattern(12)							; SA-1: Write BW-RAM openbus
+		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Write,  $000800, $BB, !__)			;   SRAM, None: NOP
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM, None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Write,  $400001, $CC, !__)			;   SRAM      : BW-RAM $400001 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Write,  $000801, $DD, !__)			;   SRAM, None: NOP
+		%TestPattern(SA_1,Read,   $000800, $AA, $CC)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SA_1,Read,   $000801, $AA, $CC)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($CC)
+
+	;--------------------------------------------------
+	; SNES Write BW-RAM address
+
+	%NextTestPattern(13)							; SNES: Write BW-RAM address (same -> same address: $400000 -> $400000 -> $400000)
 		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $000800, $11, $11)			;   SRAM, None: return W-RAM $7E0800 ($11)
-		%TestPattern(SNES,Read,   $000801, $22, $22)			;   SRAM, None: return W-RAM $7E0801 ($22)
-		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $00, $AA)			;   SRAM      : return BW-RAM $400001 ($00)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   (repeat)
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0801 ($00)
+		%TestPattern(SNES,Read,   $000801, $00, $00)			;   (repeat)
 		%TestPattern(SNES,Write,  $400000, $BB, !__)			;   SRAM      : BW-RAM $400000 = $BB
-										;   SRAM      : BW-RAM openbus = $00BB, BW-RAM latch = 0 (L)  * write: L -> L
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $400000, $BB, $BB)			;   SRAM      : return BW-RAM $400000 ($BB)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $00, $BB)			;   SRAM      : return BW-RAM $400001 ($00)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   (repeat)
+		%TestPattern(SNES,Read,   $000801, $00, $00)			;   SRAM, None: return W-RAM $7E0801 ($00)
+		%TestPattern(SNES,Read,   $000801, $00, $00)			;   (repeat)
 
-	%NextTestPattern(9)							; SNES: Write BW-RAM address (odd, latch = 1)
-		%TestPattern(SNES,Write,  $000800, $11, !__)			;   SRAM, None: W-RAM $7E0800 = $00
-		%TestPattern(SNES,Write,  $000801, $22, !__)			;   SRAM, None: W-RAM $7E0801 = $00
-		%TestPattern(SNES,Write,  $400001, $AA, !__)			;   SRAM      : BW-RAM $400001 = $AA
-										;   SRAM      : BW-RAM openbus = $AA00, BW-RAM latch = 1 (H)  * write: H -> H
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $000800, $11, $11)			;   SRAM, None: return W-RAM $7E0800 ($11)
-		%TestPattern(SNES,Read,   $000801, $22, $22)			;   SRAM, None: return W-RAM $7E0801 ($22)
-		%TestPattern(SNES,Read,   $400000, $00, $AA)			;   SRAM      : return BW-RAM $400000 ($00)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $AA, $AA)			;   SRAM      : return BW-RAM $400001 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
-		%TestPattern(SNES,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $00BB, BW-RAM latch = 0 (L)  * write: L -> L
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $400000, $00, $BB)			;   SRAM      : return BW-RAM $400000 ($00)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $BB, $BB)			;   SRAM      : return BW-RAM $400001 ($BB)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-
-	%NextTestPattern(10)							; SNES: Write BW-RAM address (odd, latch = 0)
-		%TestPattern(SNES,Write,  $000800, $11, !__)			;   SRAM, None: W-RAM $7E0800 = $00
-		%TestPattern(SNES,Write,  $000801, $22, !__)			;   SRAM, None: W-RAM $7E0801 = $00
+	%NextTestPattern(14)							; SNES: Write BW-RAM address (alternate address: $400000 -> $400000 -> $400001 -> $40000 -> $400001)
 		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $BBAA, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $000800, $11, $11)			;   SRAM, None: return W-RAM $7E0800 ($11)
-		%TestPattern(SNES,Read,   $000801, $22, $22)			;   SRAM, None: return W-RAM $7E0801 ($22)
-		%TestPattern(SNES,Read,   $400000, $AA, $BB)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $BB, $BB)			;   SRAM      : return BW-RAM $400001 ($BB)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SNES,Write,  $400001, $CC, !__)			;   SRAM      : BW-RAM $400001 = $CC
-										;   SRAM      : BW-RAM openbus = $CCAA, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00CC, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $400000, $AA, $CC)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $CC, $CC)			;   SRAM      : return BW-RAM $400001 ($CC)
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
-
-	%NextTestPattern(11)							; SNES: Write BW-RAM address (alternating)
-		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+										;         None: return BW-RAM openbus[1] ($AA)
 		%TestPattern(SNES,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $BBAA, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		;%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 		%TestPattern(SNES,Read,   $400000, $AA, $BB)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $BB, $BB)			;   SRAM      : return BW-RAM $400001 ($BB)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
+										;         None: return BW-RAM openbus[1] ($BB)
 		%TestPattern(SNES,Write,  $400000, $CC, !__)			;   SRAM      : BW-RAM $400000 = $CC
-										;   SRAM      : BW-RAM openbus = $BBCC, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00CC, BW-RAM latch = 0 (always L ?)
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400001 -> $400000
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		;%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 		%TestPattern(SNES,Read,   $400000, $CC, $CC)			;   SRAM      : return BW-RAM $400000 ($CC)
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $BB, $CC)			;   SRAM      : return BW-RAM $400001 ($BB)
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
+										;         None: return BW-RAM openbus[1] ($CC)
 		%TestPattern(SNES,Write,  $400001, $DD, !__)			;   SRAM      : BW-RAM $400001 = $DD
-										;   SRAM      : BW-RAM openbus = $DDCC, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00DD, BW-RAM latch = 0 (always L ?)
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 		%TestPattern(SNES,Read,   $400000, $CC, $DD)			;   SRAM      : return BW-RAM $400000 ($CC)
-										;         None: return BW-RAM openbus.L ($DD)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $DD, $DD)			;   SRAM      : return BW-RAM $400001 ($DD)
-										;         None: return BW-RAM openbus.L ($DD)   * BW-RAM latch = 0
+										;         None: return BW-RAM openbus[1] ($DD)
 
-	%NextTestPattern(12)							; SNES: Write BW-RAM address (increment)
+	%NextTestPattern(15)							; SNES: Write BW-RAM address (increment address: $400000 -> $400000 -> $400001 -> $400002 -> $40003)
 		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
-										;   SRAM      : BW-RAM openbus = $00AA, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00AA, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($AA)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 		%TestPattern(SNES,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
-										;   SRAM      : BW-RAM openbus = $BBAA, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00BB, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $400000, $AA, $BB)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400001, $BB, $BB)			;   SRAM      : return BW-RAM $400001 ($BB)
-										;         None: return BW-RAM openbus.L ($BB)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 		%TestPattern(SNES,Write,  $400002, $CC, !__)			;   SRAM      : BW-RAM $400002 = $CC
-										;   SRAM      : BW-RAM openbus = $BBCC, BW-RAM latch = 1 (H)
-										;         None: BW-RAM openbus = $00CC, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $400000, $AA, $CC)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400002, $CC, $CC)			;   SRAM      : return BW-RAM $400002 ($CC)
-										;         None: return BW-RAM openbus.L ($CC)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400001 -> $400002
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 		%TestPattern(SNES,Write,  $400003, $DD, !__)			;   SRAM      : BW-RAM $400003 = $DD
-										;   SRAM      : BW-RAM openbus = $DDCC, BW-RAM latch = 0 (L)
-										;         None: BW-RAM openbus = $00DD, BW-RAM latch = 0 (always L ?)
-		%TestPattern(SNES,Read,   $400000, $AA, $DD)			;   SRAM      : return BW-RAM $400000 ($AA)
-										;         None: return BW-RAM openbus.L ($DD)   * BW-RAM latch = 0
-		%TestPattern(SNES,Read,   $400003, $DD, $DD)			;   SRAM      : return BW-RAM $400003 ($DD)
-										;         None: return BW-RAM openbus.L ($DD)   * BW-RAM latch = 0
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400002 -> $400003
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 
+	%NextTestPattern(16)							; SNES: Write BW-RAM address (decrement address: $400000 -> $400003 -> $400002 -> $400001 -> $40000)
+		%TestPattern(SNES,Write,  $400003, $AA, !__)			;   SRAM      : BW-RAM $400003 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $00], BW-RAM last address = $400000 -> $400003
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Write,  $400002, $BB, !__)			;   SRAM      : BW-RAM $400002 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400003 -> $400002
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Write,  $400001, $CC, !__)			;   SRAM      : BW-RAM $400001 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400002 -> $400001
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Write,  $400000, $DD, !__)			;   SRAM      : BW-RAM $400000 = $DD
+										;   SRAM      : BW-RAM openbus = [$DD, $CC], BW-RAM last address = $400001 -> $400000
+										;         None: BW-RAM openbus = [$DD, $DD], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 
+	%NextTestPattern(17)							; SNES: Read other BW-RAM address
+		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Write,  $400001, $BB, !__)			;   SRAM      : BW-RAM $400001 = $BB
+										;   SRAM      : BW-RAM openbus = [$BB, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$BB, $BB], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Write,  $400002, $CC, !__)			;   SRAM      : BW-RAM $400002 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $BB], BW-RAM last address = $400001 -> $400002
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $400000, $AA, $CC)			;   SRAM      : return BW-RAM $400000 ($AA)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Read,   $400001, $BB, $CC)			;   SRAM      : return BW-RAM $400001 ($BB)
+										;         None: return BW-RAM openbus[1] ($CC)
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 
+	%NextTestPattern(18)							; SNES: Write BW-RAM openbus
+		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Write,  $000800, $BB, !__)			;   SRAM, None: W-RAM $7E0800 = $BB
+		%TestPattern(SNES,Read,   $000800, $BB, $BB)			;   SRAM, None: return W-RAM $7E0800 ($BB)
+		%TestPattern(SNES,Write,  $400001, $CC, !__)			;   SRAM      : BW-RAM $400001 = $CC
+										;   SRAM      : BW-RAM openbus = [$CC, $AA], BW-RAM last address = $400000 -> $400001
+										;         None: BW-RAM openbus = [$CC, $CC], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Write,  $000801, $DD, !__)			;   SRAM, None: W-RAM $7E0800 = $DD
+		%TestPattern(SNES,Read,   $000800, $BB, $BB)			;   SRAM, None: return W-RAM $7E0800 ($BB)
+		%TestPattern(SNES,Read,   $000801, $DD, $DD)			;   SRAM, None: return W-RAM $7E0800 ($DD)
 
-;--------------------------------------------------
+	;--------------------------------------------------
+	; Write I-RAM address (no BW-RAM openbus update)
 
-; test
+	%NextTestPattern(19)							; SA-1: Write other region
+		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Write,  !TestIRamWriteTarget, $BB, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus
+		%TestPattern(SA_1,Write,  $008000, $CC, !__)			;   SRAM, None: ROM does not update BW-RAM openbus
+		%TestPattern(SA_1,Write,  $002232, $DD, !__)			;   SRAM, None: I/O does not update BW-RAM openbus ($2232: SDAL)
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Read,   $400001, $00, $AA)			;   SRAM      : return BW-RAM $400001 ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
 
-	%NextTestPattern(13)							; SA-1: Write unmapped address
-		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   $00AA, latch = 1
-		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   $BBAA, latch = 0
-		%TestPattern(SA_1,Write,  $400002, $CC, !__)			;   $BBCC, latch = 1
-		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;
-		%TestPattern(SA_1,Write,  $000800, $11, !__)			;   latch = 1
-		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;
-		%TestPattern(SA_1,Write,  $000801, $22, !__)			;   latch = 1
-		%TestPattern(SA_1,Read,   $000800, $BB, $CC)			;
-	; => pass
+	%NextTestPattern(20)							; SA-1: Write I-RAM
+		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SA_1,Write,  $000000|(!TestIRamWriteTarget&$0007FF), $11, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($000042)
+		%TestPattern(SA_1,Write,  $003000|(!TestIRamWriteTarget&$0007FF), $22, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($003042)
+		%TestPattern(SA_1,Write,  $3F0000|(!TestIRamWriteTarget&$0007FF), $33, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($3F0042)
+		%TestPattern(SA_1,Write,  $3F3000|(!TestIRamWriteTarget&$0007FF), $44, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($3F3042)
+		%TestPattern(SA_1,Write,  $800000|(!TestIRamWriteTarget&$0007FF), $55, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($800042)
+		%TestPattern(SA_1,Write,  $803000|(!TestIRamWriteTarget&$0007FF), $66, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($803042)
+		%TestPattern(SA_1,Write,  $BF0000|(!TestIRamWriteTarget&$0007FF), $77, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($BF0042)
+		%TestPattern(SA_1,Write,  $BF3000|(!TestIRamWriteTarget&$0007FF), $88, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($BF3042)
 
-	%NextTestPattern(14)							; SA-1: Write unmapped address
-		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   $00AA, latch = 1
-		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   $BBAA, latch = 0
-		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;
-		%TestPattern(SA_1,Write,  $000800, $11, !__)			;   latch = 0
-		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;
-		%TestPattern(SA_1,Write,  $000801, $22, !__)			;   latch = 0
-		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;
-	; => pass
+		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM      : return BW-RAM openbus[1] ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
 
-;--------------------------------------------------
+	%NextTestPattern(21)							; SNES: Write BW-RAM openbus
+		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Write,  !TestIRamWriteTarget, $BB, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus
+		%TestPattern(SNES,Write,  $008000, $CC, !__)			;   SRAM, None: ROM does not update BW-RAM openbus
+		%TestPattern(SNES,Write,  $002232, $DD, !__)			;   SRAM, None: I/O does not update BW-RAM openbus ($2232: SDAL)
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   SRAM      : return BW-RAM $400000 ($AA)
+										;         None: return BW-RAM openbus[1] ($AA)
+		%TestPattern(SNES,Read,   $400001, $00, $AA)			;   SRAM      : return BW-RAM $400001 ($00)
+										;         None: return BW-RAM openbus[1] ($AA)
 
-; needs a rewrite
+	%NextTestPattern(22)							; SNES: Write I-RAM, W-RAM
+		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM      : BW-RAM $400000 = $AA
+										;   SRAM      : BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+										;         None: BW-RAM openbus = [$AA, $AA], BW-RAM last address = $400000 -> $400000 * same address, copy to openbus high byte
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
 
-;	%NextTestPattern(5)							; SNES: Read mapped address
-;		%TestPattern(SNES,Write,  $7E0800, $AA, !__)			;   SRAM, None: SNES WRAM $7E0800 = $EE
-;		%TestPattern(SNES,Write,  $400000, $BB, !__)			;   SRAM, None: BW-RAM openbus = $00BB, BW-RAM latch = 1 (H)
-;		%TestPattern(SNES,Read,   $000800, $AA, $AA)			;   SRAM, None: return SNES WRAM $7E0800 ($AA)
-;		%TestPattern(SNES,Read,   $000800, $AA, $AA)			;   (repeat)
-;
-;	%NextTestPattern(6)							; SA-1: Update BW-RAM openbus
-;		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   SRAM, None: BW-RAM openbus = $AA
-;		%TestPattern(SA_1,Read,   $000800, $AA, $AA)			;   SRAM, None: return BW-RAM openbus ($AA)
-;		%TestPattern(SA_1,Read,   $400000, $AA, $AA)			;   SRAM      : return $400000 ($AA)
-;										;         None: return BW-RAM openbus ($AA)
-;		%TestPattern(SA_1,Write,  $400001, $BB, !__)			;   SRAM, None: BW-RAM openbus = $BB
-;		%TestPattern(SA_1,Read,   $000800, $BB, $BB)			;   SRAM, None: return BW-RAM openbus ($BB)
-;		%TestPattern(SA_1,Read,   $400000, $AA, $BB)			;   SRAM      : return $400000 ($AA)
-;										;   SRAM      : BW-RAM openbus = $AA
-;										;         None: return BW-RAM openbus ($BB)
-;		%TestPattern(SA_1,Read,   $000800, $AA, $BB)			;   SRAM      : return BW-RAM openbus ($AA)
-;										;         None: return BW-RAM openbus ($BB)
-;
-;	%NextTestPattern(7)							; SNES: Update BW-RAM openbus
-;		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   SRAM, None: BW-RAM openbus = $AA
-;		%TestPattern(SNES,Read,   $400000, $AA, $AA)			;   SRAM      : return $400000 ($AA)
-;										;         None: return BW-RAM openbus ($AA)
-;		%TestPattern(SNES,Write,  $400001, $BB, !__)			;   SRAM, None: BW-RAM openbus = $BB
-;		%TestPattern(SNES,Read,   $400000, $AA, $BB)			;   SRAM      : return $400000 ($AA)
-;										;         None: return BW-RAM openbus ($BB)
-;		%TestPattern(SNES,Read,   $400001, $BB, $BB)			;   SRAM      : return $400001 ($BB)
-;										;         None: return BW-RAM openbus ($BB)
-;
-;	%NextTestPattern(8)							; No update BW-RAM openbus from SA-1
-;		%TestPattern(SA_1,Write,  $400000, $AA, !__)			;   BW-RAM openbus = $AA
-;		%TestPattern(SA_1,Read,   $000800, $AA, $AA)
-;		%TestPattern(SA_1,Write,  !TestIRamWriteTarget, $BB, !__)	;   I-RAM does not update BW-RAM openbus
-;		%TestPattern(SA_1,Write,  $008000, $CC, !__)			;   ROM does not update BW-RAM openbus
-;		%TestPattern(SA_1,Write,  $002232, $DD, !__)			;   I/O does not update BW-RAM openbus ($2232: SDAL)
-;		%TestPattern(SA_1,Read,   $000800, $AA, $AA)
-;
-;	%NextTestPattern(9)							; 
-;		%TestPattern(SNES,Write,  $400000, $AA, !__)			;   BW-RAM openbus = $AA
-;		%TestPattern(SNES,Read,   $000800, $AA, $AA)
-;		%TestPattern(SNES,Write,  !TestIRamWriteTarget, $BB, !__)	;   BW-RAM openbus = $BB
-;		%TestPattern(SNES,Write,  $008000, $CC, !__)			;   ROM does not update BW-RAM openbus
-;		%TestPattern(SNES,Write,  $002232, $DD, !__)			;   I/O does not update BW-RAM openbus ($2232: SDAL)
-;		%TestPattern(SNES,Read,   $000800, $BB, $BB)
+		%TestPattern(SNES,Write,  $000000|(!TestIRamWriteTarget&$0007FF), $11, !__)	;   SRAM, None: W-RAM does not update BW-RAM openbus ($000042)
+		%TestPattern(SNES,Write,  $003000|(!TestIRamWriteTarget&$0007FF), $22, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($003042)
+		%TestPattern(SNES,Write,  $3F0000|(!TestIRamWriteTarget&$0007FF), $33, !__)	;   SRAM, None: W-RAM does not update BW-RAM openbus ($3F0042)
+		%TestPattern(SNES,Write,  $3F3000|(!TestIRamWriteTarget&$0007FF), $44, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($3F3042)
+		%TestPattern(SNES,Write,  $800000|(!TestIRamWriteTarget&$0007FF), $55, !__)	;   SRAM, None: W-RAM does not update BW-RAM openbus ($800042)
+		%TestPattern(SNES,Write,  $803000|(!TestIRamWriteTarget&$0007FF), $66, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($803042)
+		%TestPattern(SNES,Write,  $BF0000|(!TestIRamWriteTarget&$0007FF), $77, !__)	;   SRAM, None: W-RAM does not update BW-RAM openbus ($BF0042)
+		%TestPattern(SNES,Write,  $BF3000|(!TestIRamWriteTarget&$0007FF), $88, !__)	;   SRAM, None: I-RAM does not update BW-RAM openbus ($BF3042)
+
+		%TestPattern(SNES,Read,   $000800, $00, $00)			;   SRAM, None: return W-RAM $7E0800 ($00)
+
+	;--------------------------------------------------
+
+	; TODO: mirror
+	; TODO: bank
+	; TODO: map
+	; TODO: bitmap
+	; TODO: protect + ^
+	; TODO: io register(read)
 
 ;--------------------------------------------------
