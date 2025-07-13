@@ -7,10 +7,11 @@ includeonce
 ;--------------------------------------------------
 ; SNES -> SA-1 Message
 
-!Message_SNES_SA1_ResetStatus		= 0
-!Message_SNES_SA1_ExecuteWAI		= 1
-!Message_SNES_SA1_ExecuteSTP		= 2
-!Message_SNES_SA1_TestExecute		= 3
+!Message_SNES_SA1_NOP			= 0	; to leave WAI
+!Message_SNES_SA1_ResetStatus		= 1
+!Message_SNES_SA1_ExecuteWAI		= 2
+!Message_SNES_SA1_ExecuteSTP		= 3
+!Message_SNES_SA1_TestExecute		= 4
 
 ;--------------------------------------------------
 ; SA-1 -> SNES Message

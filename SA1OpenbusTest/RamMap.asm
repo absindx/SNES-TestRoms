@@ -124,6 +124,10 @@ warnings pull
 
 !TestPattern_Access_Read	= 1
 !TestPattern_Access_Write	= 2
+!TestPattern_Access_WAI		= 3
+!TestPattern_Access_STP		= 4
+!TestPattern_Access_ReadyWait	= 5
+!TestPattern_Access_DebugBreak	= 6
 
 warnings push
 warnings disable W1009

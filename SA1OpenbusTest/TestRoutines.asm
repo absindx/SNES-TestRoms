@@ -236,6 +236,10 @@ WriteTestPattern_Access:
 		db	"?????"
 		db	"READ", $00
 		db	"WRITE"
+		db	"WAI", $00, $00
+		db	"STP", $00, $00
+		db	"READY"
+		db	"BREAK"
 
 WriteTestPattern_Address:
 		LDA.b	#'$'
@@ -276,6 +280,10 @@ WriteTestPattern_Direction:
 		db	"?"
 		db	">"				; read
 		db	"<"				; write
+		db	"-"				; WAI instructin
+		db	"-"				; STP instructin
+		db	"-"				; $2200.D6 Ready = 1: Wait
+		db	"!"				; wait A button press
 
 WriteTestPattern_Expected:
 		LDA.b	#'$'
@@ -320,7 +328,7 @@ WriteTestPattern_Actual:
 
 		RTS
 
-.Write
+.Write							; Write, WAI, STP, ReadyWait, DebugBreak
 		LDA.b	#'-'
 		STA	!WRAM_WMDATA
 		STA	!WRAM_WMDATA
@@ -373,6 +381,7 @@ InitializeSA1:
 
 		RTS
 
+; SA-1 -> SNES Message
 SNESProcessMessage:
 		; .shortm, .shortx
 
@@ -462,19 +471,7 @@ SA1TestMain:
 
 		JSR	CheckBwRam
 		%SendSA1Message(!Message_SA1_SNES_Boot, 1)
-
-.WaitLoop	LDA	!Sa1Booted
-		BEQ	.WaitLoop
-
-;;		JSR	TestSa1Execute
-;		; fallthrough
-;SA1TestFinished:
-;		SEP	#$30
-;		; .shortm, .shortx
-;		%SendSA1Message(!Message_TestFinished, 1)
-;.InfLoop
-;		%SendSA1Message(!Message_TestFinished, 0)
-;		BRA	.InfLoop
+		JSR	WaitSa1Boot
 
 .InfLoop
 		LDA.b	#$80				;\  accespet IRQ from SNES CPU
@@ -485,7 +482,9 @@ SA1TestMain:
 
 
 
+; SA-1 -> SNES Message
 SA1ProcessMessage:
+		; .shortm, .shortx
 		LDA.b	#$01
 		STA	!Sa1IrqProcessing
 
@@ -494,16 +493,17 @@ SA1ProcessMessage:
 		ASL
 		TAX
 
+		%SendSA1Message(!Message_SA1_SNES_Running, 0)
 		JSR	(.MessageTable, X)
 
 		RTS
 
 .MessageTable
-		dw	SA1Message_ResetStatus		; #0
-		dw	SA1Message_ExecuteWAI		; #1
-		dw	SA1Message_ExecuteSTP		; #2
-		dw	SA1Message_TestExecute		; #3
-		dw	SA1Message_NOP			; #4
+		dw	SA1Message_NOP			; #0
+		dw	SA1Message_ResetStatus		; #1
+		dw	SA1Message_ExecuteWAI		; #2
+		dw	SA1Message_ExecuteSTP		; #3
+		dw	SA1Message_TestExecute		; #4
 		dw	SA1Message_NOP			; #5
 		dw	SA1Message_NOP			; #6
 		dw	SA1Message_NOP			; #7
@@ -520,19 +520,15 @@ SA1Message_NOP:
 		RTS
 
 SA1Message_ResetStatus:
-		%SendSA1Message(!Message_SA1_SNES_Running, 0)
 		JMP	ResetSa1Status
 
 SA1Message_ExecuteWAI:
-		; TODO: Implements
-		RTS
+		JMP	TestSa1Execute_WAI
 
 SA1Message_ExecuteSTP:
-		; TODO: Implements
-		RTS
+		JMP	TestSa1Execute_STP
 
 SA1Message_TestExecute:
-		%SendSA1Message(!Message_SA1_SNES_Running, 0)
 		JMP	TestSa1Execute
 
 
@@ -736,6 +732,19 @@ WaitSa1TestPattern:
 		PLP
 		RTS
 
+; Argument:
+;   A = SA-1 status
+WaitSa1Status:
+		; .shortm
+		AND.b	#$0F
+		PHA
+.LoopIdle	LDA	!SA1_SFR
+		AND.b	#$0F
+		CMP.b	$01, S
+		BNE	.LoopIdle
+		PLA
+		RTS
+
 ;--------------------------------------------------
 
 TestSnesInitialize:
@@ -765,8 +774,9 @@ TestSa1Initialize:
 ; SNES CPU
 TestMainloop:
 .TestLoop
+		REP	#$30
+		LDA.w	#$0000
 		SEP	#$20
-		REP	#$10
 		; .shortm, .longx
 
 		LDX	!LastTestResultOffset
@@ -780,8 +790,13 @@ TestMainloop:
 
 .ValidPattern
 		LDA	!TestAddressResult+!TestResultOffset_Type, X
-		AND.b	#!TestResultTypeMask_Cpu
-		CMP.b	#(!TestPattern_CPU_SNES<<4)
+		;AND.b	#!TestResultTypeMask_Cpu
+		LSR
+		LSR
+		LSR
+		LSR
+		TAY
+		CMP.b	#!TestPattern_CPU_SNES
 		BNE	.PatternSa1
 
 .PatternSnes
@@ -790,10 +805,23 @@ TestMainloop:
 		BRA	.TestLoop
 
 .PatternSa1
+		LDA	.Sa1Override, Y			;\
+		CMP.b	!TestPattern_CPU_SNES		; | override access
+		BEQ	.PatternSnes			;/
+
 		%SendSnesMessage(!Message_SNES_SA1_TestExecute, 1)
 		JSR	WaitSa1TestPattern
 		JSR	NextSubTestPattern
 		BRA	.TestLoop
+
+.Sa1Override
+		db	0				; dummy
+		db	!TestPattern_CPU_SA_1		; !TestPattern_Access_Read
+		db	!TestPattern_CPU_SA_1		; !TestPattern_Access_Write
+		db	!TestPattern_CPU_SNES		; !TestPattern_Access_WAI
+		db	!TestPattern_CPU_SNES		; !TestPattern_Access_STP
+		db	!TestPattern_CPU_SNES		; !TestPattern_Access_ReadyWait
+		db	!TestPattern_CPU_SNES		; !TestPattern_Access_DebugBreak
 
 TestPatternFinished:
 		SEP	#$20
@@ -822,6 +850,7 @@ ResetSnesStatus:
 		; .shortm, .longx
 
 		STZ	!SA1_BMAPS			;   BW-RAM address mapping
+							;     $00 = $400000-$401FFF
 		LDA.b	#$80				;\  BW-RAM write enable
 		STA	!SA1_SBWE			;/    $80 = write enable
 		LDA.b	#$FF				;\  I-RAM write enable
@@ -856,7 +885,8 @@ ResetSa1Status:
 		STA	!TestBWRamWriteTarget		;/
 
 		LDA.b	#$00				;\
-		STA	!SA1_BWRam+3			; | set BW-RAM value, openbus value
+		STA	!SA1_BWRam+$002000		; | set BW-RAM value, openbus value
+		STA	!SA1_BWRam+3			; |
 		STA	!SA1_BWRam+2			; |
 		STA	!SA1_BWRam+1			; |   BW-RAM openbus[1] = $00
 		STA	!SA1_BWRam+0			;/    BW-RAM openbus[0] = $00, BW-RAM last address = $400000
@@ -869,6 +899,13 @@ ResetSa1Status:
 TestSa1Execute:
 		JMP	TestExecuteMain
 
+TestSa1Execute_WAI:
+		WAI
+		RTS
+
+TestSa1Execute_STP:
+		STP
+
 TestSnesExecute:
 		JMP	TestExecuteMain
 
@@ -876,27 +913,80 @@ TestExecuteMain:
 		REP	#$30
 		; .longm, .longx
 
-		LDX	!LastTestResultOffset
-		LDA	!TestAddressResult+!TestResultOffset_Address+0, X
+		LDY	!LastTestResultOffset
+		LDA	!TestAddressResult+!TestResultOffset_Address+0, Y
 		STA	!TestAddressPointer+0
-		LDA	!TestAddressResult+!TestResultOffset_Address+1, X
+		LDA	!TestAddressResult+!TestResultOffset_Address+1, Y
 		STA	!TestAddressPointer+1
 
+		LDA	!TestAddressResult+!TestResultOffset_Type, Y
+		AND.w	#!TestResultTypeMask_Access
+		ASL
 		SEP	#$20
 		; .shortm, .longx
-		LDA	!TestAddressResult+!TestResultOffset_Type, X
-		AND.b	#!TestResultTypeMask_Access
-		CMP.b	#!TestPattern_Access_Read
-		BNE	.Write
+		TAX
+		JMP	(.Table, X)
+
+.Dummy
+		RTS
+
 .Read
 		LDA	[!TestAddressPointer]
-		STA	!TestAddressResult+!TestResultOffset_Actual, X
+		STA	!TestAddressResult+!TestResultOffset_Actual, Y
 		RTS
 
 .Write
-		LDA	!TestAddressResult+!TestResultOffset_WriteValue, X
+		LDA	!TestAddressResult+!TestResultOffset_WriteValue, Y
 		STA	[!TestAddressPointer]
 		RTS
+
+.Wai
+		%SendSnesMessage(!Message_SNES_SA1_ExecuteWAI, 1)
+		LDA.b	#!Message_SA1_SNES_Running
+		JSR	WaitSa1Status
+
+-		LDX.w	#$0010				;\
+		DEX					; | waste cycle
+		BNE	-				;/
+
+		RTS
+
+.Stp
+		LDA.b	#$00				;\  clear SA-1 boot status
+		STA	!Sa1Booted			;/
+
+		%SendSnesMessage(!Message_SNES_SA1_ExecuteSTP, 1)
+		LDA.b	#!Message_SA1_SNES_Running
+		JSR	WaitSa1Status
+
+-		LDX.w	#$0010				;\
+		DEX					; | waste cycle
+		BNE	-				;/
+
+		RTS
+
+.ReadyWait
+		LDA.b	#%01000000|!Message_SNES_SA1_NOP
+		STA	!SA1_CCNT
+
+		RTS
+
+.DebugBreak
+		JSR	DebugWait
+
+		LDA.b	#$01
+		LDY	!LastTestResultOffset
+		STA	!TestAddressResult+!TestResultOffset_WriteValue, Y
+		RTS
+
+.Table
+		dw	.Dummy
+		dw	.Read
+		dw	.Write
+		dw	.Wai
+		dw	.Stp
+		dw	.ReadyWait
+		dw	.DebugBreak
 
 
 JudgeTestPattern:
@@ -930,8 +1020,8 @@ JudgeTestPattern:
 
 		LDY.w	#!TestResultOffset_Type		;\
 		LDA	(.basePointer), Y		; | check only read access
-		AND.b	#!TestResultTypeMask_Access	; |
-		CMP.b	#!TestPattern_Access_Read	; |
+		AND.b	#!TestResultTypeMask_Access	; | check skip:
+		CMP.b	#!TestPattern_Access_Read	; |   Write, WAI, STP, ReadyWait
 		BNE	.DetectPass			;/
 
 		LDY.w	#!TestResultOffset_Actual	;\
@@ -1177,6 +1267,9 @@ macro	TestPattern(cpu, access, address, expectSave, expectNone)
 		; MEMO: warn cannot output multiple outputs.
 		print "Test pattern entries exceeded. TestID = ", dec(!MaxTestPatternID), ", SubID =  ", dec(!TestPatternSubID)
 	endif
+endmacro
+macro	TestBreak()
+	%TestPattern(SNES,DebugBreak, $000000, $00, $00)
 endmacro
 
 	skip align	!TestPattern_EntrySize
