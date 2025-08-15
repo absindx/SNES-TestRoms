@@ -131,8 +131,10 @@ warnings pull
 
 warnings push
 warnings disable W1009
-%DefineRam(TestIRamWriteTarget,			!SA1_IRamImage+$042, 1)	; $3042
-%DefineRam(TestBWRamWriteTarget,		!SA1_BWRam+$042,     1)	; $400042
+!TestIRamOffset		= $042
+!TestBwRamOffset	= $042
+%DefineRam(TestIRamTarget,			!SA1_IRamImage+!TestIRamOffset, 1)	; $3042
+%DefineRam(TestBWRamTarget,			!SA1_BWRam+!TestBwRamOffset,    1)	; $400042
 warnings pull
 
 	org	!SA1_IRamImage+$200

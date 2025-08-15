@@ -881,16 +881,16 @@ ResetSa1Status:
 							;     $00 = multiplication (MR5 = openbus)
 
 		LDA.b	#$00				;\
-		STA	!TestIRamWriteTarget		; | set test memory
-		STA	!TestBWRamWriteTarget		;/
+		STA	!TestIRamTarget			; | set test memory
+		STA	!TestBWRamTarget		;/
 
 		LDA.b	#$00				;\
 		STA	!SA1_BWRam+$002000		; | set BW-RAM value, openbus value
 		STA	!SA1_BWRam+3			; |
 		STA	!SA1_BWRam+2			; |
-		STA	!SA1_BWRam+1			; |   BW-RAM openbus[1] = $00
-		STA	!SA1_BWRam+0			;/    BW-RAM openbus[0] = $00, BW-RAM last address = $400000
-
+		STA	!SA1_BWRam+1			; |
+		STA	!SA1_BWRam+0			; |   BW-RAM $400000[1] = $400000
+		STA	!SA1_BWRam+0			;/    BW-RAM $400000[0] = $400000
 
 		RTS
 
@@ -1243,7 +1243,7 @@ endmacro
 macro	NextTestPattern(testID)
 	if !MaxTestPatternID+1 != <testID>
 		; MEMO: warn cannot output multiple outputs.
-		print "Is the ID definition being skipped? ", dec(!MaxTestPatternID), " -> ", dec(<testID>)
+		print "  WARNING: Is the ID definition being skipped? ", dec(!MaxTestPatternID), " -> ", dec(<testID>)
 	endif
 	!MaxTestPatternID	:= <testID>
 	!TestPatternSubID	:= 0
@@ -1265,7 +1265,7 @@ macro	TestPattern(cpu, access, address, expectSave, expectNone)
 	!TestPatternSubID	#= !TestPatternSubID+1
 	if !TestPatternSubID >= !TestResultCount
 		; MEMO: warn cannot output multiple outputs.
-		print "Test pattern entries exceeded. TestID = ", dec(!MaxTestPatternID), ", SubID =  ", dec(!TestPatternSubID)
+		print "  WARNING: Test pattern entries exceeded. TestID = ", dec(!MaxTestPatternID), ", SubID =  ", dec(!TestPatternSubID)
 	endif
 endmacro
 macro	TestBreak()

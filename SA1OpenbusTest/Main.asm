@@ -54,6 +54,10 @@ endif
 	print	"ROM Size: ", dec(!RomSize/1024), "KiB"
 	print	"RAM Size: ", dec(!RamSize/1024), "KiB"
 
+if !RamSize > 0 && !RamSize < $4000	; BW-RAM image 2 blocks
+	print	"  WARNING: SRAM size is too small. Some tests fail."
+endif
+
 if defined("DEBUG")
 	print	"Build: Debug"
 else
